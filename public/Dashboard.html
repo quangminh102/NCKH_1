@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thông tin tai nạn giao thông đường bộ</title>
+    
+    <!-- Add API base URL data attribute for environment variable support -->
+    <meta id="api-base-url" data-url="<%= process.env.API_BASE_URL || '' %>" />
+    
     <!-- Font Awesome Icon Library -->
     <link
       rel="stylesheet"
@@ -108,7 +112,7 @@
       /* Dashboard grid styles */
       .dashboard-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 20px;
         padding: 20px;
         flex-grow: 1;
@@ -165,17 +169,13 @@
       <nav>
         <ul>
           <li>
-            <a href="http://localhost:8000/"
-              ><i class="fas fa-home"></i> Home</a
-            >
+            <a href="/" id="home-link"><i class="fas fa-home"></i> Home</a>
           </li>
           <li>
             <a href="Dashboard.html"><i class="fas fa-chart-bar"></i> DB_1D</a>
           </li>
           <li>
-            <a href="Dashboard_v2x.html"
-              ><i class="fas fa-chart-bar"></i> DB_2D</a
-            >
+            <a href="Dashboard_v2x.html"><i class="fas fa-chart-bar"></i> DB_2D</a>
           </li>
           <li>
             <a href="Accident_map.html"><i class="fas fa-map"></i> Map</a>
@@ -200,47 +200,31 @@
 
     <div class="dashboard-grid">
       <div id="hour-chart" class="chart">
-        <div id="hour-chart-title" class="chart-title">
-          Phân bố TNGT theo khung giờ
-        </div>
+        <div class="chart-title">Phân bố TNGT theo khung giờ</div>
       </div>
       <div id="week-chart" class="chart">
-        <div id="week-chart-title" class="chart-title">
-          Phân bố TNGT theo ngày
-        </div>
+        <div class="chart-title">Phân bố TNGT theo ngày</div>
       </div>
       <div id="month-chart" class="chart">
-        <div id="month-chart-title" class="chart-title">
-          Phân bố TNGT theo tháng
-        </div>
+        <div class="chart-title">Phân bố TNGT theo tháng</div>
       </div>
       <div id="road-chart" class="chart">
-        <div id="road-chart-title" class="chart-title">
-          Tỷ lệ TNGT theo loại đường
-        </div>
+        <div class="chart-title">Tỷ lệ TNGT theo loại đường</div>
       </div>
       <div id="veh-chart" class="chart">
-        <div id="veh-chart-title" class="chart-title">Tỷ lệ TNGT loại xe</div>
+        <div class="chart-title">Tỷ lệ TNGT loại xe</div>
       </div>
       <div id="gender-chart" class="chart">
-        <div id="gender-chart-title" class="chart-title">
-          Tỷ lệ TNGT theo giới
-        </div>
+        <div class="chart-title">Tỷ lệ TNGT theo giới</div>
       </div>
       <div id="age-chart" class="chart">
-        <div id="age-chart-title" class="chart-title">
-          Tỷ lệ TNGT theo độ tuổi
-        </div>
+        <div class="chart-title">Tỷ lệ TNGT theo độ tuổi</div>
       </div>
       <div id="severity-chart" class="chart">
-        <div id="severity-chart-title" class="chart-title">
-          Tỷ lệ TNGT theo mức độ
-        </div>
+        <div class="chart-title">Tỷ lệ TNGT theo mức độ</div>
       </div>
       <div id="cause-chart" class="chart">
-        <div id="cause-chart-title" class="chart-title">
-          Tỷ lệ TNGT theo nguyên nhân
-        </div>
+        <div class="chart-title">Tỷ lệ TNGT theo nguyên nhân</div>
       </div>
     </div>
 
@@ -248,6 +232,22 @@
       <p>© 2025 Vương Xuân Cần và cộng sự - UTC. All rights reserved.</p>
     </footer>
 
+    <!-- Initialize API base URL from environment variables -->
+    <script>
+      // Initialize API base URL from environment variable or meta tag
+      (function() {
+        const apiBaseElement = document.getElementById('api-base-url');
+        if (apiBaseElement) {
+          window.API_BASE_URL = apiBaseElement.getAttribute('data-url');
+        }
+        
+        // Update navigation links to use dynamic base URL if needed
+        if (window.API_BASE_URL) {
+          document.getElementById('home-link').href = window.API_BASE_URL || '/';
+        }
+      })();
+    </script>
+    
     <script src="Xuly.js"></script>
     <script src="my_charts.js"></script>
   </body>
