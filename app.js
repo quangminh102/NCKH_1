@@ -23,14 +23,31 @@ app.post('/', function (req, res) {
 var mysql = require('mysql2'); // Import MySQL module
 const { console } = require("inspector");
 
-// Use environment variables more consistently - check for both standard and service-specific variables
-var connection_db = mysql.createConnection({
-  host: process.env.DB_HOST || process.env.MYSQL_ADDON_HOST || 'localhost',
-  user: process.env.DB_USER || process.env.MYSQL_ADDON_USER || 'root',
-  password: process.env.DB_PASSWORD || process.env.MYSQL_ADDON_PASSWORD || '11032004',
-  port: process.env.DB_PORT || process.env.MYSQL_ADDON_PORT || 3306,
-  database: process.env.DB_NAME || process.env.MYSQL_ADDON_DB || 'nckh'
-});
+// For Render deployment, use the DATABASE_URL environment variable if available
+var connection_db;
+if (process.env.DATABASE_URL) {
+  // Parse the DATABASE_URL for Render's MySQL service
+  const dbUrl = new URL(process.env.DATABASE_URL);
+  connection_db = mysql.createConnection({
+    host: dbUrl.hostname,
+    user: dbUrl.username,
+    password: dbUrl.password,
+    port: dbUrl.port || 3306,
+    database: dbUrl.pathname.substring(1), // Remove leading slash
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+} else {
+  // Use environment variables more consistently - check for both standard and service-specific variables
+  connection_db = mysql.createConnection({
+    host: process.env.DB_HOST || process.env.MYSQL_ADDON_HOST || 'localhost',
+    user: process.env.DB_USER || process.env.MYSQL_ADDON_USER || 'root',
+    password: process.env.DB_PASSWORD || process.env.MYSQL_ADDON_PASSWORD || '11032004',
+    port: process.env.DB_PORT || process.env.MYSQL_ADDON_PORT || 3306,
+    database: process.env.DB_NAME || process.env.MYSQL_ADDON_DB || 'nckh'
+  });
+}
 
 // Log the database connection to verify variables (for development only - remove in production)
 console.log("Database connection using:", {
@@ -50,12 +67,23 @@ connection_db.connect((err) => {
   console.log("Database connection successful!");
 });
 
+// Add CORS headers for API routes
+app.use((req, res, next) => {
+  // Allow requests from Render's domains
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+});
+
 // Query data
 // API to get data from MySQL for months
 const query_month = 'SELECT MONTH(Date) AS Months, COUNT(*) AS Accidents FROM hanoi_data_tngt_1517 GROUP BY MONTH(Date)';
 app.get('/api/data_month', (req, res) => {
   connection_db.query(query_month, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results); // Return data as JSON
   });
 });
@@ -109,7 +137,10 @@ const query_week_by_year = `
 
 app.get('/api/data_week_by_year', (req, res) => {
   connection_db.query(query_week_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -130,7 +161,10 @@ const query_hour_by_year = `
 
 app.get('/api/data_hour_by_year', (req, res) => {
   connection_db.query(query_hour_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -139,7 +173,10 @@ app.get('/api/data_hour_by_year', (req, res) => {
 const query_season = "SELECT CASE WHEN Month(Date) BETWEEN 2 AND 4 THEN 'Spring' WHEN Month(Date) BETWEEN 5 AND 7 THEN 'Summer' WHEN Month(Date) BETWEEN 8 AND 10 THEN 'Fall' ELSE 'Winter' END AS season_name, COUNT(*) AS Accidents FROM hanoi_data_tngt_1517 GROUP BY season_name";
 app.get('/api/data_season', (req, res) => {
   connection_db.query(query_season, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -148,7 +185,10 @@ app.get('/api/data_season', (req, res) => {
 const query_point = "SELECT * FROM hanoi_data_tngt_1517 WHERE Latitude IS NOT NULL and Longitude IS NOT NULL";
 app.get('/api/data_point', (req, res) => {
   connection_db.query(query_point, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -165,7 +205,10 @@ const query_veh_by_year = `
 
 app.get('/api/data_veh_by_year', (req, res) => {
   connection_db.query(query_veh_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -182,7 +225,10 @@ const query_road_by_year = `
 
 app.get('/api/data_road_by_year', (req, res) => {
   connection_db.query(query_road_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -199,7 +245,10 @@ const query_gender_by_year = `
 
 app.get('/api/data_gender_by_year', (req, res) => {
   connection_db.query(query_gender_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -221,7 +270,10 @@ const query_age_by_year = `
 
 app.get('/api/data_age_by_year', (req, res) => {
   connection_db.query(query_age_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -238,7 +290,10 @@ const query_severity_by_year = `
 
 app.get('/api/data_severity_by_year', (req, res) => {
   connection_db.query(query_severity_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -255,7 +310,10 @@ const query_cause_by_year = `
 
 app.get('/api/data_cause_by_year', (req, res) => {
   connection_db.query(query_cause_by_year, (err, results) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Query error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
     res.json(results);
   });
 });
@@ -394,7 +452,7 @@ const query_veh_severity = `
     SUM(CASE WHEN Severity_1 = 'Thương nhẹ' THEN 1 ELSE 0 END) AS Thuong_nhe,
     SUM(CASE WHEN Severity_1 = 'Thương nặng' THEN 1 ELSE 0 END) AS Thuong_nang,
     SUM(CASE WHEN Severity_1 = 'Tử vong' THEN 1 ELSE 0 END) AS Tu_vong
-  FROM Hanoi_data_TNGT_1517
+  FROM Hanoi_data_tngt_1517
   WHERE Severity_1 IS NOT NULL AND Veh_1 IS NOT NULL`;
 
 app.get('/api/data_veh_severity', (req, res) => {
@@ -503,30 +561,6 @@ app.get('/api/data_road_severity', (req, res) => {
   });
 });
 
-// Helper function to create filterable endpoints
-function createFilterableEndpoint(route, baseQuery, groupByFields) {
-  app.get(route, (req, res) => {
-    const year = req.query.year;
-    let query = baseQuery;
-    let queryParams = [];
-    
-    if (year) {
-      query += ' AND YEAR(Date) = ?';
-      queryParams.push(year);
-    }
-    
-    query += ` GROUP BY ${groupByFields}`;
-    
-    connection_db.query(query, queryParams, (err, results) => {
-      if (err) {
-        console.error("Query error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
-      res.json(results);
-    });
-  });
-}
-
 // Socket
 var io = require("socket.io")(server);
 io.on('connection', function(socket) {
@@ -536,8 +570,8 @@ io.on('connection', function(socket) {
   });
 });
 
-// Get port from environment variables or use default
-const port = process.env.PORT || process.env.APP_PORT || 8000;
+// Get port from environment variable - Render will set this
+const port = process.env.PORT || 8000;
 server.listen(port, () => {
-  console.log(`Application running at http://localhost:${port}`);
+  console.log(`Application running on port ${port}`);
 });
