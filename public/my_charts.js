@@ -1,16 +1,31 @@
-// Thêm trình nghe sự kiện cho năm
+// Get base API URL from environment or use a default
+const API_BASE_URL = window.API_BASE_URL || '';
+
+// Function to build API URL with proper base
+function getApiUrl(endpoint) {
+  // If API_BASE_URL includes http or https, use it as is
+  // Otherwise assume it's just a port or empty, and use current hostname
+  if (API_BASE_URL.startsWith('http')) {
+    return `${API_BASE_URL}${endpoint}`;
+  } else if (API_BASE_URL) {
+    return `${window.location.protocol}//${window.location.hostname}:${API_BASE_URL}${endpoint}`;
+  } else {
+    // Fallback to current origin
+    return `${window.location.origin}${endpoint}`;
+  }
+}
+
+// Add event listener for year selector
 document.getElementById('yearSelector').addEventListener('change', function() {
   var selectedYear = this.value;
   updateCharts(selectedYear);
 });
 
-
-// Hàm cập nhật các biểu đồ
+// Function to update all charts
 function updateCharts(year) {
-  console.log("Cập nhật biểu đồ cho năm: " + year);
+  console.log("Updating charts for year: " + year);
 
-
-  // Cập nhật dữ liệu cho mỗi biểu đồ
+  // Update data for each chart
   renderMonthChart(year);
   renderWeekChart(year);
   renderHourChart(year);
@@ -22,18 +37,16 @@ function updateCharts(year) {
   renderRoadChart_Pie(year);
 }
 
-
-// Hàm vẽ biểu đồ tháng
+// Function to render month chart
 function renderMonthChart(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_month_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_month_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-      // Chuyển đổi dữ liệu object lồng thành mảng
+      // Convert nested object data to array
       let formattedData = [];
       for (const [yearKey, months] of Object.entries(data)) {
         for (const [monthKey, accidents] of Object.entries(months)) {
@@ -45,14 +58,12 @@ function renderMonthChart(year) {
         }
       }
 
-
-      // Lọc theo năm nếu không chọn 'all'
+      // Filter by year if not 'all'
       if (year !== 'all') {
         formattedData = formattedData.filter(d => d.Year === parseInt(year));
       }
 
-
-      // Nhóm và tính tổng nếu chọn 'all'
+      // Group and sum if 'all'
       if (year === 'all') {
         const temp = {};
         formattedData.forEach(d => {
@@ -66,69 +77,47 @@ function renderMonthChart(year) {
         }));
       }
 
-
-      // Sắp xếp theo tháng
+      // Sort by month
       formattedData.sort((a, b) => a.Month - b.Month);
 
-
-      // Xóa biểu đồ cũ trước khi vẽ mới
+      // Remove old chart before drawing new one
       d3.select('#month-chart').selectAll('svg').remove();
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#month-chart')
         .append('svg')
         .attr('width', 650)
         .attr('height', 300);
-
 
       const margin = { top: 20, right: 30, bottom: 20, left: 50 };
       const width = +svg.attr("width") - margin.left - margin.right;
       const height = +svg.attr("height") - margin.top - margin.bottom;
       const g = svg.append("g").attr("transform", `translate(${margin.left},${margin.top})`);
 
-
-      // Lấy giá trị cho trục X và Y
-      const xValues = formattedData.map(d => d.Month.toString()); // Chuyển tháng thành chuỗi
+      // Get values for X and Y axes
+      const xValues = formattedData.map(d => d.Month.toString()); // Convert month to string
       const yValues = formattedData.map(d => d.Accidents);
 
-
-      // Thang đo (scales)
+      // Scales
       const x = d3.scaleBand()
         .domain(xValues)
         .range([0, width])
         .padding(0.1);
-
 
       const y = d3.scaleLinear()
         .domain([0, d3.max(yValues)])
         .nice()
         .range([height, 0]);
 
-
-      // Trục X và Y
+      // X and Y axes
       g.append("g")
         .attr("transform", `translate(0,${height})`)
-        .call(d3.axisBottom(x).tickFormat(d => `Tháng ${d}`)); // Định dạng nhãn trục X
-
+        .call(d3.axisBottom(x).tickFormat(d => `Tháng ${d}`)); // Format X axis labels
 
       g.append("g")
         .call(d3.axisLeft(y));
 
-
-      // Thêm tiêu đề
-      //g.append("text")
-      //  .attr("x", width / 2)
-      //  .attr("y", -margin.top / 2)
-      //  .attr("text-anchor", "middle")
-      //  .style("font-size", "16px")
-      //  .style("font-weight", "bold")
-      //  .text(year !== "all"
-      //    ? `Phân bố TNGT theo tháng - Năm ${year}`
-      //    : "Phân bố TNGT theo tháng (Tất cả năm)");
-
-
-      // Vẽ cột
+      // Draw bars
       g.selectAll(".bar")
         .data(formattedData)
         .enter()
@@ -145,42 +134,36 @@ function renderMonthChart(year) {
     });
 }
 
-
-// Hàm vẽ biểu đồ ngày trong tuần
+// Function to render week chart
 function renderWeekChart(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_week_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_week_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-      // Xử lý dữ liệu
+      // Process data
       const weekOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
      
-      // Lọc dữ liệu theo năm nếu cần
+      // Filter data by year if needed
       let filteredData = year === 'all'
-        ? aggregateWeeklyData(data) // Hàm tổng hợp dữ liệu cho tất cả năm
+        ? aggregateWeeklyData(data) // Function to aggregate data for all years
         : data.filter(d => d.Year == year);
 
-
-      // Sắp xếp theo thứ tự ngày trong tuần
+      // Sort by day of week order
       filteredData.sort((a, b) =>
         weekOrder.indexOf(a.day_name) - weekOrder.indexOf(b.day_name)
       );
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#week-chart').selectAll('svg').remove();
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#week-chart')
         .append('svg')
         .attr('width', 600)
         .attr('height', 300);
-
 
       const margin = { top: 20, right: 30, bottom: 40, left: 50 };
       const width = 500 - margin.left - margin.right;
@@ -189,31 +172,26 @@ function renderWeekChart(year) {
       const g = svg.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-
-      // Thang đo
+      // Scales
       const x = d3.scaleBand()
         .domain(filteredData.map(d => d.day_name))
         .range([0, width])
         .padding(0.1);
-
 
       const y = d3.scaleLinear()
         .domain([0, d3.max(filteredData, d => d.Accidents)])
         .nice()
         .range([height, 0]);
 
-
-      // Vẽ trục
+      // Draw axes
       g.append('g')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(x));
 
-
       g.append('g')
         .call(d3.axisLeft(y));
 
-
-      // Vẽ cột
+      // Draw bars
       g.selectAll('.bar')
         .data(filteredData)
         .enter().append('rect')
@@ -223,24 +201,13 @@ function renderWeekChart(year) {
         .attr('width', x.bandwidth())
         .attr('height', d => height - y(d.Accidents))
         .attr('fill', '#7B68EE');
-
-
-      // Thêm tiêu đề
-      //g.append('text')
-      //  .attr('x', width/2)
-      // .attr('y', -10)
-      //  .attr('text-anchor', 'middle')
-      //  .style('font-size', '16px')
-      //  .style('font-weight', 'bold')
-      //  .text(`Phân bố TNGT theo ngày trong tuần${year !== 'all' ? ` - Năm ${year}` : ''}`);
     })
     .catch(error => {
-      console.error('Lỗi khi lấy dữ liệu:', error);
+      console.error('Error fetching data:', error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate data for all years
 function aggregateWeeklyData(data) {
   const aggregated = {};
  
@@ -251,49 +218,42 @@ function aggregateWeeklyData(data) {
     aggregated[item.day_name] += item.Accidents;
   });
 
-
   return Object.entries(aggregated).map(([day_name, Accidents]) => ({
     day_name,
     Accidents
   }));
 }
 
-
-// Hàm vẽ biểu đồ khung giờ
+// Function to render hour chart
 function renderHourChart(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_hour_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_hour_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => response.json())
     .then(data => {
-      // Xử lý dữ liệu
+      // Process data
       const hourOrder = ['0h00-5h59', '6h00-11h59', '12h00-17h59', '18h00-23h59'];
      
-      // Lọc và tổng hợp dữ liệu
+      // Filter and aggregate data
       let filteredData = year === 'all'
-        ? aggregateHourlyData(data) // Hàm tổng hợp cho tất cả năm
+        ? aggregateHourlyData(data) // Function to aggregate for all years
         : data.filter(d => d.Year == year);
 
-
-      // Sắp xếp theo thứ tự khung giờ
+      // Sort by hour order
       filteredData.sort((a, b) =>
         hourOrder.indexOf(a.hour_name) - hourOrder.indexOf(b.hour_name)
       );
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#hour-chart').selectAll('svg').remove();
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#hour-chart')
         .append('svg')
         .attr('width', 500)
         .attr('height', 300);
-
 
       const margin = { top: 20, right: 30, bottom: 40, left: 50 };
       const width = 500 - margin.left - margin.right;
@@ -302,31 +262,26 @@ function renderHourChart(year) {
       const g = svg.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
 
-
-      // Thang đo
+      // Scales
       const x = d3.scaleBand()
         .domain(filteredData.map(d => d.hour_name))
         .range([0, width])
         .padding(0.1);
-
 
       const y = d3.scaleLinear()
         .domain([0, d3.max(filteredData, d => d.Accidents)])
         .nice()
         .range([height, 0]);
 
-
-      // Vẽ trục
+      // Draw axes
       g.append('g')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(x));
 
-
       g.append('g')
         .call(d3.axisLeft(y));
 
-
-      // Vẽ cột
+      // Draw bars
       g.selectAll('.bar')
         .data(filteredData)
         .enter().append('rect')
@@ -336,24 +291,13 @@ function renderHourChart(year) {
         .attr('width', x.bandwidth())
         .attr('height', d => height - y(d.Accidents))
         .attr('fill', '#7B68EE');
-
-
-      // Thêm tiêu đề
-      //g.append('text')
-      //  .attr('x', width/2)
-      //  .attr('y', -10)
-      //  .attr('text-anchor', 'middle')
-      //  .style('font-size', '16px')
-      //  .style('font-weight', 'bold')
-      //  .text(`Phân bố TNGT theo khung giờ${year !== 'all' ? ` - Năm ${year}` : ''}`);
     })
     .catch(error => {
-      console.error('Lỗi khi lấy dữ liệu:', error);
+      console.error('Error fetching data:', error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate data for all years
 function aggregateHourlyData(data) {
   const aggregated = {};
  
@@ -364,20 +308,15 @@ function aggregateHourlyData(data) {
     aggregated[item.hour_name] += item.Accidents;
   });
 
-
   return Object.entries(aggregated).map(([hour_name, Accidents]) => ({
     hour_name,
     Accidents
   }));
 }
 
-
-
-
-// Hàm vẽ biểu đồ xe
+// Function to render vehicle pie chart
 function renderVehChart_Pie(year) {
-  const apiUrl = 'http://localhost:8000/api/data_veh_by_year';
-
+  const apiUrl = getApiUrl('/api/data_veh_by_year');
 
   fetch(apiUrl)
     .then(response => {
@@ -385,58 +324,50 @@ function renderVehChart_Pie(year) {
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateVehData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#veh-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas với chiều rộng lớn hơn để có không gian cho chú thích
+      // Set up canvas with larger width for legend
       const svg = d3.select('#veh-chart')
         .append('svg')
-        .attr('width', 700) // Tăng chiều rộng từ 500 lên 700 để có không gian cho chú thích
+        .attr('width', 700)
         .attr('height', 300);
 
-
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
-      const radius = Math.min(500, 300) / 2 - 15; // Bán kính vẫn giữ nguyên
+      const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`); // Tâm biểu đồ giữ nguyên
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Veh_1))
         .range(["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD", "#D4A5A5", "#79BEDB"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -446,72 +377,66 @@ function renderVehChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
- // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
- g.selectAll('text')
- .data(arcs)
- .enter().append('text')
- .attr('transform', d => {
-   const pos = arc.centroid(d);
-   const percentage = (d.data.Accidents / total) * 100;
-   const multiplier = percentage < 5 ? 2.1 : 1.05;
-   pos[0] *= multiplier;
-   pos[1] *= multiplier;
-   return `translate(${pos})`;
- })
- .attr('text-anchor', 'middle')
- .attr('font-size', '12px')
- .attr('fill', '#333')
- .text(d => {
-   const percentage = (d.data.Accidents / total) * 100;
-   return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
- });
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo loại xe${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-g.append('text')
- .attr('y', -radius - 20)
- .attr('text-anchor', 'middle')
- .style('font-weight', 'bold')
- .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+      // Add legend and move outside chart
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
-// Thêm chú thích với phần trăm <2%
-const legend = svg.append('g')
- .attr('transform', `translate(${radius + 190}, 20)`);
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
 
-filteredData.forEach((d, i) => {
- const legendItem = legend.append('g')
-   .attr('transform', `translate(0, ${i * 25})`);
- 
- const percentage = (d.Accidents / total) * 100;
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
 
- legendItem.append('rect')
-   .attr('width', 15)
-   .attr('height', 15)
-   .attr('fill', color(i));
-
-   legendItem.append('text')
-   .attr('x', 20)
-   .attr('y', 12)
-   .text(`${d.Veh_1} (${d.Accidents})`);
-
- // Hiển thị phần trăm <2% bên cạnh legend
- if (percentage < 2) {
-   legendItem.append('text')
-     .attr('x', 210)  // Vị trí hiển thị phần trăm
-     .attr('y', 12)
-     .attr('fill', '#333')
-     .text(`(${percentage.toFixed(1)}%)`);
- }
-});
-})
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Veh_1} (${d.Accidents})`);
+      });
+    })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
-
+// Function to render road type pie chart
 function renderRoadChart_Pie(year) {
-  const apiUrl = 'http://localhost:8000/api/data_road_by_year';
-
+  const apiUrl = getApiUrl('/api/data_road_by_year');
 
   fetch(apiUrl)
     .then(response => {
@@ -519,58 +444,50 @@ function renderRoadChart_Pie(year) {
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateRoadData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#road-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas với chiều rộng lớn hơn để có không gian cho chú thích
+      // Set up canvas with larger width for legend
       const svg = d3.select('#road-chart')
         .append('svg')
         .attr('width', 700)
         .attr('height', 300);
 
-
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`);
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Rdtype))
         .range(["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD", "#D4A5A5", "#79BEDB"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -580,70 +497,81 @@ function renderRoadChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
- // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
- g.selectAll('text')
- .data(arcs)
- .enter().append('text')
- .attr('transform', d => {
-   const pos = arc.centroid(d);
-   const percentage = (d.data.Accidents / total) * 100;
-   const multiplier = percentage < 5 ? 2.1 : 1.05;
-   pos[0] *= multiplier;
-   pos[1] *= multiplier;
-   return `translate(${pos})`;
- })
- .attr('text-anchor', 'middle')
- .attr('font-size', '12px')
- .attr('fill', '#333')
- .text(d => {
-   const percentage = (d.data.Accidents / total) * 100;
-   return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
- });
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo loại đường${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-g.append('text')
- .attr('y', -radius - 20)
- .attr('text-anchor', 'middle')
- .style('font-weight', 'bold')
- .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+      // Add legend and move outside chart
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
-// Thêm chú thích với phần trăm <2%
-const legend = svg.append('g')
- .attr('transform', `translate(${radius + 190}, 20)`);
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
 
-filteredData.forEach((d, i) => {
- const legendItem = legend.append('g')
-   .attr('transform', `translate(0, ${i * 25})`);
- 
- const percentage = (d.Accidents / total) * 100;
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
 
- legendItem.append('rect')
-   .attr('width', 15)
-   .attr('height', 15)
-   .attr('fill', color(i));
-
-   legendItem.append('text')
-   .attr('x', 20)
-   .attr('y', 12)
-   .text(`${d.Rdtype} (${d.Accidents})`);
-
- // Hiển thị phần trăm <2% bên cạnh legend
- if (percentage < 2) {
-   legendItem.append('text')
-     .attr('x', 210)  // Vị trí hiển thị phần trăm
-     .attr('y', 12)
-     .attr('fill', '#333')
-     .text(`(${percentage.toFixed(1)}%)`);
- }
-});
-})
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Rdtype} (${d.Accidents})`);
+      });
+    })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
+// Function to aggregate vehicle data
+function aggregateVehData(data) {
+  const aggregated = {};
+ 
+  data.forEach(item => {
+    if (!aggregated[item.Veh_1]) {
+      aggregated[item.Veh_1] = 0;
+    }
+    aggregated[item.Veh_1] += item.Accidents;
+  });
 
-// Hàm tổng hợp dữ liệu cho tất cả năm
+  return Object.entries(aggregated).map(([Veh_1, Accidents]) => ({
+    Veh_1,
+    Accidents
+  }));
+}
+
+// Function to aggregate road data
 function aggregateRoadData(data) {
   const temp = {};
   data.forEach(d => {
@@ -657,90 +585,62 @@ function aggregateRoadData(data) {
   }));
 }
 
-
-// Hàm tổng hợp dữ liệu xe cộ
-function aggregateVehData(data) {
-  const aggregated = {};
- 
-  data.forEach(item => {
-    if (!aggregated[item.Veh_1]) {
-      aggregated[item.Veh_1] = 0;
-    }
-    aggregated[item.Veh_1] += item.Accidents;
-  });
-
-
-  return Object.entries(aggregated).map(([Veh_1, Accidents]) => ({
-    Veh_1,
-    Accidents
-  }));
-}
-
-
+// Function to render gender pie chart
 function renderGenderChart_Pie(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_gender_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_gender_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateGenderData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#gender-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#gender-chart')
         .append('svg')
         .attr('width', 700)
         .attr('height', 300);
 
-
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`);
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Gender_1))
         .range(["orange", "steelblue"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -750,56 +650,51 @@ function renderGenderChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
-
-      // Thêm tiêu đề
+      // Add title
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
         .text(`Tỷ lệ TNGT theo giới${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Add legend
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 190}, 20)`);
-
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
 
-
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
-
 
         legendItem.append('text')
           .attr('x', 20)
@@ -808,12 +703,11 @@ g.selectAll('text')
       });
     })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate gender data
 function aggregateGenderData(data) {
   const temp = {};
   data.forEach(d => {
@@ -827,71 +721,62 @@ function aggregateGenderData(data) {
   }));
 }
 
-
+// Function to render age pie chart
 function renderAgeChart_Pie(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_age_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_age_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateAgeData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#age-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#age-chart')
         .append('svg')
         .attr('width', 700)
         .attr('height', 300);
 
-
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`);
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.age_name))
         .range(["lightblue", "orange", "steelblue", "#999999"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -901,57 +786,51 @@ function renderAgeChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
-
-
-      // Thêm tiêu đề
+      // Add title
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
         .text(`Tỷ lệ TNGT theo độ tuổi${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Add legend
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 190}, 20)`);
-
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
 
-
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
-
 
         legendItem.append('text')
           .attr('x', 20)
@@ -960,12 +839,11 @@ g.selectAll('text')
       });
     })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate age data
 function aggregateAgeData(data) {
   const temp = {};
   data.forEach(d => {
@@ -979,76 +857,66 @@ function aggregateAgeData(data) {
   }));
 }
 
-
+// Function to render severity pie chart
 function renderSeverityChart_Pie(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_severity_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_severity_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateSeverityData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Sắp xếp dữ liệu theo mức độ nghiêm trọng
+      // Sort data by severity level
       const severityOrder = ["Không bị sao", "Thương nhẹ", "Thương nặng", "Tử vong"];
       filteredData.sort((a, b) => severityOrder.indexOf(a.Severity_1) - severityOrder.indexOf(b.Severity_1));
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#severity-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#severity-chart')
         .append('svg')
         .attr('width', 700)
         .attr('height', 300);
 
-
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`);
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Severity_1))
         .range(["#4ECDC4", "#FF6B6B", "#FFD166", "#06D6A0"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -1058,57 +926,51 @@ function renderSeverityChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
-
-
-      // Thêm tiêu đề
+      // Add title
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
         .text(`Tỷ lệ TNGT theo mức độ nghiêm trọng${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Add legend
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 190}, 20)`);
-
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
 
-
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
-
 
         legendItem.append('text')
           .attr('x', 20)
@@ -1117,12 +979,11 @@ g.selectAll('text')
       });
     })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate severity data
 function aggregateSeverityData(data) {
   const temp = {};
   data.forEach(d => {
@@ -1136,71 +997,62 @@ function aggregateSeverityData(data) {
   }));
 }
 
-
+// Function to render cause pie chart
 function renderCauseChart_Pie(year) {
-  // Xây dựng URL API
-  const apiUrl = 'http://localhost:8000/api/data_cause_by_year';
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_cause_by_year');
 
-
-  // Lấy dữ liệu từ API
+  // Fetch data from API
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       return response.json();
     })
     .then(data => {
-      // Xử lý dữ liệu theo năm được chọn
+      // Process data by selected year
       let filteredData;
       if (year === 'all') {
-        // Tổng hợp dữ liệu cho tất cả năm
+        // Aggregate data for all years
         filteredData = aggregateCauseData(data);
       } else {
-        // Lọc theo năm cụ thể
+        // Filter by specific year
         filteredData = data.filter(d => d.Year === parseInt(year));
       }
 
-
       if (filteredData.length === 0) {
-        console.error("Không có dữ liệu");
+        console.error("No data available");
         return;
       }
 
-
-      // Xóa biểu đồ cũ
+      // Remove old chart
       d3.select('#cause-chart').selectAll('svg').remove();
 
-
-      // Tính tổng số vụ
+      // Calculate total
       const total = d3.sum(filteredData, d => d.Accidents);
 
-
-      // Thiết lập canvas
+      // Set up canvas
       const svg = d3.select('#cause-chart')
         .append('svg')
-        .attr('width', 750)
+        .attr('width', 700)
         .attr('height', 300);
-
 
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${150},${150})`);
+        .attr('transform', `translate(${250},${150})`);
 
-
-      // Tạo pie chart
+      // Create pie chart
       const pie = d3.pie().value(d => d.Accidents);
       const arc = d3.arc()
         .innerRadius(0)
         .outerRadius(radius);
 
-
-      // Màu sắc
+      // Colors
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Causes))
         .range(["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD", "#D4A5A5", "#79BEDB"]);
 
-
-      // Vẽ các phần
+      // Draw sections
       const arcs = pie(filteredData);
       g.selectAll('path')
         .data(arcs)
@@ -1210,70 +1062,64 @@ function renderCauseChart_Pie(year) {
         .attr('stroke', 'white')
         .attr('stroke-width', 2);
 
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
 
- // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
- g.selectAll('text')
- .data(arcs)
- .enter().append('text')
- .attr('transform', d => {
-   const pos = arc.centroid(d);
-   const percentage = (d.data.Accidents / total) * 100;
-   const multiplier = percentage < 5 ? 2.1 : 1.05;
-   pos[0] *= multiplier;
-   pos[1] *= multiplier;
-   return `translate(${pos})`;
- })
- .attr('text-anchor', 'middle')
- .attr('font-size', '12px')
- .attr('fill', '#333')
- .text(d => {
-   const percentage = (d.data.Accidents / total) * 100;
-   return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
- });
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-g.append('text')
- .attr('y', -radius - 20)
- .attr('text-anchor', 'middle')
- .style('font-weight', 'bold')
- .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+      // Add legend
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
 
-// Thêm chú thích với phần trăm <2%
-const legend = svg.append('g')
- .attr('transform', `translate(${radius + 190}, 20)`);
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
 
-filteredData.forEach((d, i) => {
- const legendItem = legend.append('g')
-   .attr('transform', `translate(0, ${i * 25})`);
- 
- const percentage = (d.Accidents / total) * 100;
-
- legendItem.append('rect')
-   .attr('width', 15)
-   .attr('height', 15)
-   .attr('fill', color(i));
-
- legendItem.append('text')
-   .attr('x', 20)
-   .attr('y', 12)
-   .text(`${d.Causes} (${d.Accidents})`);
-
- // Hiển thị phần trăm <2% bên cạnh legend
- if (percentage < 2) {
-   legendItem.append('text')
-     .attr('x', 240)  // Vị trí hiển thị phần trăm
-     .attr('y', 12)
-     .attr('fill', '#333')
-     .text(`(${percentage.toFixed(1)}%)`);
- }
-});
-})
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
+        
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Causes} (${d.Accidents})`);
+      });
+    })
     .catch(error => {
-      console.error("Lỗi khi lấy dữ liệu:", error);
+      console.error("Error fetching data:", error);
     });
 }
 
-
-// Hàm tổng hợp dữ liệu cho tất cả năm
+// Function to aggregate cause data
 function aggregateCauseData(data) {
   const temp = {};
   data.forEach(d => {
@@ -1287,12 +1133,23 @@ function aggregateCauseData(data) {
   }));
 }
 
-// Hàm để tải dữ liệu mặc định khi trang được tải
+// Function to load default data when page is loaded
 window.onload = function() {
-  // Mặc định hiển thị dữ liệu cho năm 2015
+  // Get API base URL from window or environment
+  if (typeof API_BASE_URL === 'undefined') {
+    // Check if we can get it from a global variable or data attribute
+    const apiBaseElement = document.getElementById('api-base-url');
+    if (apiBaseElement) {
+      window.API_BASE_URL = apiBaseElement.getAttribute('data-url');
+    } else {
+      // Default to current origin if not specified
+      window.API_BASE_URL = '';
+    }
+  }
+  
+  // Display data for all years by default
   updateCharts('all');
 };
-
 
 // Get the dropdown element
 const yearSelector = document.getElementById('yearSelector');
@@ -1311,7 +1168,7 @@ function updateChartTitles(selectedYear) {
   if (!window.originalTitles) {
     window.originalTitles = {};
     chartTitles.forEach(title => {
-      window.originalTitles[title.id] = title.textContent; // Sử dụng ID làm key
+      window.originalTitles[title.id] = title.textContent; // Use ID as key
     });
   }
   
@@ -1321,7 +1178,7 @@ function updateChartTitles(selectedYear) {
     if (selectedYear !== 'all') {
       title.textContent = `${baseTitle} - Năm ${selectedYear}`;
     } else {
-      title.textContent = baseTitle; // Khôi phục title gốc
+      title.textContent = baseTitle; // Restore original title
     }
   });
 }
