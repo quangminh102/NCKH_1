@@ -1,0 +1,35 @@
+services:
+  # A web service
+  - type: web
+    name: tngt-dashboard
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Database connection from Render MySQL service or external MySQL
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tngt-db
+          property: connectionString
+      # Fallback variables in case DATABASE_URL is not available
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_NAME
+        sync: false
+
+databases:
+  # MySQL database
+  - name: tngt-db
+    plan: starter
+    type: mysql
