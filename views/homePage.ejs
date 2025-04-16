@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thông tin tai nạn giao thông đường bộ</title>
+    <script src="jquery-3.5.1.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="layoutmap.css" />
+
+    <style>
+      /* Header styles */
+      header {
+        background: linear-gradient(to right, #0099ff, #00ccff);
+        padding: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .logo-container {
+        display: flex;
+        align-items: center;
+        margin-left: 20px;
+      }
+
+      .logo {
+        width: 3.645vw; /* 70px tại 1920px viewport */
+        height: 3.645vw;
+        margin-right: 10px;
+      }
+
+      .school-name {
+        color: #e0f405;
+        font-weight: bold;
+        font-size: 0.9375vw; /* 18px tại 1920px */
+        text-transform: uppercase;
+      }
+
+      .dashboard-title {
+        color: #e0f405;
+        font-size: 0.9375vw; /* 18px tại 1920px */
+        font-weight: bold;
+      }
+
+      /* Navigation styles */
+      nav {
+        display: flex;
+        justify-content: flex-end;
+        margin-right: 20px;
+      }
+
+      nav ul {
+        list-style-type: none;
+        display: flex;
+      }
+
+      nav ul li {
+        margin-left: 20px;
+      }
+
+      nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 0.9375vw; /* 18px tại 1920px */
+      }
+
+      /* Footer styles */
+      footer {
+        background-color: #003366;
+        color: white;
+        text-align: center;
+        padding: 1vw 0; /* Co giãn theo viewport */
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        font-size: 0.7292vw; /* 14px tại 1920px */
+      }
+
+      /* Main Content */
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        flex-grow: 1;
+      }
+
+      .hero {
+        padding: 40px 0;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-size: 1.5625vw; /* 30px tại 1920px */
+        color: #de561b;
+        margin-bottom: 30px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      .content-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .functions {
+        flex: 1;
+        text-align: left;
+        min-width: 300px;
+      }
+
+      .functions ul {
+        list-style: none;
+      }
+
+      .functions ul li {
+        font-size: 1.25vw; /* 24px tại 1920px */
+        color: #de561b;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .functions ul li i {
+        color: #1e90ff;
+      }
+
+      .cta-button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 0.78125vw 1.30208vw; /* 15px 25px tại 1920px */
+        background-color: #1e90ff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 25px;
+        transition: background 0.3s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        font-size: 0.9375vw; /* 18px tại 1920px */
+      }
+
+      .cta-button:hover {
+        background-color: #00b7eb;
+      }
+
+      .cta-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 2vw; /* Co giãn theo viewport */
+        margin-top: 20px;
+      }
+
+      .accident-image {
+        width: 26.0417vw; /* 500px tại 1920px */
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+      }
+
+      .accident-image:hover {
+        transform: scale(1.05);
+      }
+
+      /* Date and Time */
+      .datetime {
+        text-align: center;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin: 20px 0;
+      }
+
+      #fulltime,
+      #time {
+        font-size: 1.0417vw; /* 20px tại 1920px */
+        color: #de421b;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .content-wrapper {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .functions ul {
+          text-align: center;
+        }
+
+        .accident-image {
+          width: 100%; /* Chiếm toàn bộ chiều rộng trên màn hình nhỏ */
+        }
+
+        nav ul {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        nav ul li {
+          margin: 10px 0;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+          gap: 10px;
+        }
+
+        /* Đặt kích thước tối thiểu để đảm bảo khả năng đọc */
+        .hero h1 {
+          font-size: 20px;
+        }
+
+        .functions ul li {
+          font-size: 16px;
+        }
+
+        .cta-button {
+          font-size: 14px;
+          padding: 10px 20px;
+        }
+
+        .logo {
+          width: 50px;
+          height: 50px;
+        }
+
+        .school-name,
+        .dashboard-title {
+          font-size: 14px;
+        }
+
+        nav ul li a {
+          font-size: 14px;
+        }
+
+        footer {
+          font-size: 12px;
+        }
+
+        #fulltime,
+        #time {
+          font-size: 16px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="logo-container">
+        <img src="./picture/LogoUTC.png" class="logo" alt="Logo" />
+        <div>
+          <div class="school-name">TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI</div>
+          <div class="dashboard-title">DASHBOARD THÔNG TIN TNGT HÀ NỘI</div>
+        </div>
+      </div>
+      <nav>
+        <ul>
+          <li>
+            <a href="http://localhost:8000/"><i class="fa fa-home"></i> Home</a>
+          </li>
+          <li>
+            <a href="Dashboard.html"><i class="fas fa-chart-bar"></i> DB_1D</a>
+          </li>
+          <li>
+            <a href="Dashboard_v2x.html"
+              ><i class="fas fa-chart-bar"></i> DB_2D</a
+            >
+          </li>
+          <li>
+            <a href="Accident_map.html"><i class="fas fa-map"></i> Map</a>
+          </li>
+          <li>
+            <a href="info.html"><i class="fas fa-at"></i> Contact us</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section class="hero">
+        <h1>CHỨC NĂNG CHÍNH CỦA DASHBOARD</h1>
+        <div class="content-wrapper">
+          <div class="functions">
+            <ul>
+              <li>
+                <i class="fas fa-clock"></i> Dashboard thông tin TNGT theo thời
+                gian
+              </li>
+              <li>
+                <i class="fas fa-map-marker-alt"></i> Dashboard thông tin TNGT
+                theo không gian
+              </li>
+              <li>
+                <i class="fas fa-car-crash"></i> Dashboard thông tin TNGT theo
+                phương tiện gây TNGT
+              </li>
+              <li>
+                <i class="fas fa-road"></i> Dashboard thông tin TNGT theo loại
+                đường
+              </li>
+              <li>
+                <i class="fas fa-info-circle"></i> Dashboard các thông tin liên
+                quan khác
+              </li>
+            </ul>
+            <div class="cta-buttons">
+              <a href="Dashboard.html" class="cta-button" id="cta-button-1"
+                >Khám phá Dashboard 1</a
+              >
+              <a href="Dashboard_v2x.html" class="cta-button" id="cta-button-2"
+                >Khám phá Dashboard 2</a
+              >
+            </div>
+          </div>
+          <img
+            src="./picture/TNGT_01.jpg"
+            alt="Traffic accident illustration"
+            class="accident-image"
+          />
+        </div>
+      </section>
+
+      <section class="datetime">
+        <div id="fulltime"></div>
+        <div id="time"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2025 Vương Xuân Cần và cộng sự - UTC. All rights reserved.</p>
+    </footer>
+
+    <script>
+      var myVar = setInterval(myTimer, 1000);
+      function myTimer() {
+        var months = [
+          "Tháng 1",
+          "Tháng 2",
+          "Tháng 3",
+          "Tháng 4",
+          "Tháng 5",
+          "Tháng 6",
+          "Tháng 7",
+          "Tháng 8",
+          "Tháng 9",
+          "Tháng 10",
+          "Tháng 11",
+          "Tháng 12",
+        ];
+        var days = [
+          "Chủ nhật,",
+          "Thứ 2,",
+          "Thứ 3,",
+          "Thứ 4,",
+          "Thứ 5,",
+          "Thứ 6,",
+          "Thứ 7,",
+        ];
+        var d = new Date();
+        document.getElementById("fulltime").innerHTML =
+          days[d.getDay()] +
+          " " +
+          "ngày" +
+          " " +
+          d.getDate() +
+          " " +
+          months[d.getMonth()] +
+          " " +
+          "năm" +
+          " " +
+          d.getFullYear();
+        document.getElementById("time").innerHTML = d.toLocaleTimeString();
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,309 @@
+#map {
+    height: 100%;
+    width: 80%;
+    float: right;
+  }
+
+  /* Optional: Makes the sample page fill the window. */
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+#menu{
+  float: top;
+    background: hsl(192, 69%, 48%);
+    margin: 0;
+}
+#text{
+    float: left;
+    position: relative;
+    margin-top: 0.3cm;
+    color: #f5d907;
+    font-size: 20px;
+}
+#menu ul {
+    list-style-type: none;
+    text-align: right;
+    padding: 20px
+  }
+#menu li{
+    color: #0911ed;
+    display: inline-block;
+    width: 120px;
+    height: 40px;
+    line-height: 40px;
+    margin-left: -5px;
+   position: relative;
+   
+}
+#menu img{
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  float: left;
+  margin-left: 3cm;
+}
+#menu a {
+    text-decoration: none;
+    color:  #0911ed;
+    display: inline-block;
+  }
+#menu a:hover {
+    background:hsl(118, 72%, 69%);;
+    color: rgb(241, 44, 44);
+    text-decoration: none;
+    border: 2px inset #e4c309e0
+  }    
+  /* Optional: Makes the sample page fill the window. */
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  #description {
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+  }
+  
+  #infowindow-content .title {
+    font-weight: bold;
+  }
+  #map #infowindow-content {
+    display: inline;
+  }
+  
+  .pac-card {
+    margin: 10px 10px 0 0;
+    border-radius: 2px 0 0 2px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    background-color: #fff;
+    font-family: Roboto;
+  }
+  
+  #pac-container {
+    padding-bottom: 12px;
+    margin-right: 12px;
+  }
+  
+  .pac-controls {
+    display: inline-block;
+    padding: 5px 11px;
+  }
+  
+  .pac-controls label {
+    font-family: Roboto;
+    font-size: 13px;
+    font-weight: 300;
+  }
+  
+  #pac-input {
+    background-color: #fff;
+    font-family: Roboto;
+    font-size: 15px;
+    font-weight: 300;
+    margin-left: 12px;
+    padding: 0 11px 0 13px;
+    text-overflow: ellipsis;
+    width: 400px;
+  }
+  
+  #pac-input:focus {
+    border-color: #4d90fe;
+  }
+  
+  #title {
+    color: #fff;
+    background-color: #4d90fe;
+    font-size: 25px;
+    font-weight: 500;
+    padding: 6px 12px;
+  }
+  
+  #target {
+    width: 345px;
+  }
+  .controls {
+    margin-top: 10px;
+    border: 1px solid transparent;
+    border-radius: 2px 0 0 2px;
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    height: 32px;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  }  
+  #giamsat{
+    border: 2px solid green;
+    width: 99.7%;
+    height : 260px;
+    position: relative;
+    float: left;
+    float: right;
+  }
+  #tool,#map{
+    max-height: 100%;
+    float: top;
+  }
+  #tool{
+    float: top;
+    border: 2px groove #23e319;
+    width: 19.5%;
+    height: 99.5%;
+    float: left;
+    background-color:#add9ed;
+  }
+#tool
+{
+  text-decoration: none;
+}
+  
+#active, #accordion,button:hover {
+  background-color: #ccc;
+}
+.tab {
+  overflow: hidden;
+  border: 1px solid #ccc;
+  background-color: #f1f1f1;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  background-color:#ccc;
+  float: left;
+  border: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  font-size: 17.35px;
+  position: relative;
+  list-style-type: none;
+  transition-duration: 0.4s;
+  text-decoration: none;
+  overflow: hidden;
+  -webkit-transition-duration: 0.4s; /* Safari */
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: rgb(55, 204, 35);
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #abf887;
+}
+.tab button:after {
+  content: "";
+  background: #90EE90;
+  display: block;
+  position: absolute;
+  padding-top: 300%;
+  padding-left: 350%;
+  margin-left: -20px!important;
+  margin-top: -120%;
+  opacity: 0;
+  transition: all 0.8s
+}
+.tab button:active:after {
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s
+}
+/* Style the tab content */
+.tabcontent {
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+  display: inline-block
+}
+
+/* Style the close button */
+.topright {
+  float: right;
+  cursor: pointer;
+  font-size: 28px;
+}
+.cam{
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  padding-top: 60px;
+  border-style: outset;
+  border: 5px black;
+}
+.fixcam{
+  float:left;
+  width: 255;
+  height: 200;
+  border: 10px solid rgb(27, 210, 216);
+  padding: 15px;
+}
+.fixcamera{
+  width: 250;
+  height: 200;
+}
+.topright:hover {color: red;}
+canvas{
+  cursor: pointer;
+}
+.animate {
+  -webkit-animation: animatezoom 0.6s;
+  animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+  from {-webkit-transform: scale(0)} 
+  to {-webkit-transform: scale(1)}
+}
+  
+@keyframes animatezoom {
+  from {transform: scale(0)} 
+  to {transform: scale(1)}
+}
+.close {
+  position: absolute;
+  right: 25px;
+  top: 0;
+  color: #000;
+  font-size: 35px;
+  font-weight: bold;
+}
+.close:hover,
+.close:focus {
+  color: red;
+  cursor: pointer;
+}
+.cameras {
+  width: 550;
+  height: 300;
+  background-color: #1a1717;
+  margin: 10% 15% 20% 35%; /* 5% from the top, 15% from the bottom and centered */
+  border: 5px outset rgb(79, 143, 202);
+}
+/*.cameras
+{
+  width: 250;
+  height:200;
+}*/
+span.psw {
+  float: right;
+  padding-top: 16px;
+}
+.icon{
+  position: absolute;
+  right: 50px;
+  bottom: 60;
+}

@@ -1,0 +1,54 @@
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+#menu{
+  background: hsl(192, 69%, 48%);
+}
+#text{
+  float: left;
+  position: relative;
+  margin-top: 0.3cm;
+  color: #f5d907;
+  font-size: 20px;
+}
+#menu ul {
+  list-style-type: none;
+  text-align: right;
+  padding: 20px
+}
+#menu li{
+  color: #0911ed;
+  display: inline-block;
+  width: 120px;
+  height: 40px;
+  line-height: 40px;
+  margin-left: -5px;
+ position: relative;
+}
+#menu img{
+width: 80px;
+height: 80px;
+border-radius: 50%;
+float: left;
+margin-left: 3cm;
+}
+#menu a {
+  text-decoration: none;
+  color:  #0911ed;
+  display: inline-block;
+}
+#menu a:hover {
+  background:hsl(118, 72%, 69%);
+  color: rgb(241, 44, 44);
+  text-decoration: none;
+  border: 2px inset #e4c309e0;
+}    
+#time,#fulltime{
+  text-align: center;
+}
+.cam i{
+  position: absolute;
+}
