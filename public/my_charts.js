@@ -3,16 +3,8 @@ const API_BASE_URL = window.API_BASE_URL || '';
 
 // Function to build API URL with proper base
 function getApiUrl(endpoint) {
-  // If API_BASE_URL includes http or https, use it as is
-  // Otherwise assume it's just a port or empty, and use current hostname
-  if (API_BASE_URL.startsWith('http')) {
-    return `${API_BASE_URL}${endpoint}`;
-  } else if (API_BASE_URL) {
-    return `${window.location.protocol}//${window.location.hostname}:${API_BASE_URL}${endpoint}`;
-  } else {
-    // Fallback to current origin
-    return `${window.location.origin}${endpoint}`;
-  }
+  // For Render deployments, use relative URLs to avoid CORS issues
+  return endpoint;
 }
 
 // Add event listener for year selector
@@ -44,7 +36,12 @@ function renderMonthChart(year) {
 
   // Fetch data from API
   fetch(apiUrl)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       // Convert nested object data to array
       let formattedData = [];
@@ -105,7 +102,7 @@ function renderMonthChart(year) {
         .padding(0.1);
 
       const y = d3.scaleLinear()
-        .domain([0, d3.max(yValues)])
+        .domain([0, d3.max(yValues) * 1.1]) // Give 10% headroom
         .nice()
         .range([height, 0]);
 
@@ -131,8 +128,297 @@ function renderMonthChart(year) {
     })
     .catch(error => {
       console.error('Error fetching data:', error);
+      // Handle the error gracefully in the UI
+      d3.select('#month-chart')
+        .selectAll('svg').remove()
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     });
 }
+
+// Function to aggregate severity data
+function aggregateSeverityData(data) {
+  const temp = {};
+  data.forEach(d => {
+    const key = d.Severity_1;
+    if (!temp[key]) temp[key] = 0;
+    temp[key] += d.Accidents;
+  });
+  return Object.entries(temp).map(([Severity_1, Accidents]) => ({
+    Severity_1,
+    Accidents
+  }));
+}
+
+// Function to render cause pie chart
+function renderCauseChart_Pie(year) {
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_cause_by_year');
+
+  // Fetch data from API
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      // Process data by selected year
+      let filteredData;
+      if (year === 'all') {
+        // Aggregate data for all years
+        filteredData = aggregateCauseData(data);
+      } else {
+        // Filter by specific year
+        filteredData = data.filter(d => d.Year === parseInt(year));
+      }
+
+      if (filteredData.length === 0) {
+        console.error("No data available");
+        return;
+      }
+
+      // Remove old chart
+      d3.select('#cause-chart').selectAll('svg').remove();
+
+      // Calculate total
+      const total = d3.sum(filteredData, d => d.Accidents);
+
+      // Set up canvas
+      const svg = d3.select('#cause-chart')
+        .append('svg')
+        .attr('width', 700)
+        .attr('height', 300);
+
+      const margin = { top: 20, right: 20, bottom: 10, left: 20 };
+      const radius = Math.min(500, 300) / 2 - 15;
+      const g = svg.append('g')
+        .attr('transform', `translate(${250},${150})`);
+
+      // Create pie chart
+      const pie = d3.pie().value(d => d.Accidents);
+      const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+
+      // Colors
+      const color = d3.scaleOrdinal()
+        .domain(filteredData.map(d => d.Causes))
+        .range(["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD", "#D4A5A5", "#79BEDB"]);
+
+      // Draw sections
+      const arcs = pie(filteredData);
+      g.selectAll('path')
+        .data(arcs)
+        .enter().append('path')
+        .attr('d', arc)
+        .attr('fill', (d, i) => color(i))
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2);
+
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
+
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+
+      // Add legend
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
+
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
+
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
+        
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Causes} (${d.Accidents})`);
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching data:", error);
+      d3.select('#cause-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+    });
+}
+
+// Function to aggregate age data
+function aggregateAgeData(data) {
+  const temp = {};
+  data.forEach(d => {
+    const key = d.age_name;
+    if (!temp[key]) temp[key] = 0;
+    temp[key] += d.Accidents;
+  });
+  return Object.entries(temp).map(([age_name, Accidents]) => ({
+    age_name,
+    Accidents
+  }));
+}
+
+// Function to render severity pie chart
+function renderSeverityChart_Pie(year) {
+  // Build API URL
+  const apiUrl = getApiUrl('/api/data_severity_by_year');
+
+  // Fetch data from API
+  fetch(apiUrl)
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.json();
+    })
+    .then(data => {
+      // Process data by selected year
+      let filteredData;
+      if (year === 'all') {
+        // Aggregate data for all years
+        filteredData = aggregateSeverityData(data);
+      } else {
+        // Filter by specific year
+        filteredData = data.filter(d => d.Year === parseInt(year));
+      }
+
+      if (filteredData.length === 0) {
+        console.error("No data available");
+        return;
+      }
+
+      // Sort data by severity level
+      const severityOrder = ["Không bị sao", "Thương nhẹ", "Thương nặng", "Tử vong"];
+      filteredData.sort((a, b) => severityOrder.indexOf(a.Severity_1) - severityOrder.indexOf(b.Severity_1));
+
+      // Remove old chart
+      d3.select('#severity-chart').selectAll('svg').remove();
+
+      // Calculate total
+      const total = d3.sum(filteredData, d => d.Accidents);
+
+      // Set up canvas
+      const svg = d3.select('#severity-chart')
+        .append('svg')
+        .attr('width', 700)
+        .attr('height', 300);
+
+      const margin = { top: 20, right: 20, bottom: 10, left: 20 };
+      const radius = Math.min(500, 300) / 2 - 15;
+      const g = svg.append('g')
+        .attr('transform', `translate(${250},${150})`);
+
+      // Create pie chart
+      const pie = d3.pie().value(d => d.Accidents);
+      const arc = d3.arc()
+        .innerRadius(0)
+        .outerRadius(radius);
+
+      // Colors
+      const color = d3.scaleOrdinal()
+        .domain(filteredData.map(d => d.Severity_1))
+        .range(["#4ECDC4", "#FFD166", "#FF6B6B", "#C1292E"]);
+
+      // Draw sections
+      const arcs = pie(filteredData);
+      g.selectAll('path')
+        .data(arcs)
+        .enter().append('path')
+        .attr('d', arc)
+        .attr('fill', (d, i) => color(i))
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2);
+
+      // Add percentage labels (adjust position based on percentage)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
+
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo mức độ nghiêm trọng${year !== 'all' ? ` - Năm ${year}` : ''}`);
+
+      // Add legend
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
+
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
+
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
+
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Severity_1} (${d.Accidents})`);
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching data:", error);
+      d3.select('#severity-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+    });
 
 // Function to render week chart
 function renderWeekChart(year) {
@@ -141,7 +427,12 @@ function renderWeekChart(year) {
 
   // Fetch data from API
   fetch(apiUrl)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       // Process data
       const weekOrder = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -179,7 +470,7 @@ function renderWeekChart(year) {
         .padding(0.1);
 
       const y = d3.scaleLinear()
-        .domain([0, d3.max(filteredData, d => d.Accidents)])
+        .domain([0, d3.max(filteredData, d => d.Accidents) * 1.1])
         .nice()
         .range([height, 0]);
 
@@ -204,6 +495,10 @@ function renderWeekChart(year) {
     })
     .catch(error => {
       console.error('Error fetching data:', error);
+      d3.select('#week-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     });
 }
 
@@ -231,7 +526,12 @@ function renderHourChart(year) {
 
   // Fetch data from API
   fetch(apiUrl)
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then(data => {
       // Process data
       const hourOrder = ['0h00-5h59', '6h00-11h59', '12h00-17h59', '18h00-23h59'];
@@ -269,7 +569,7 @@ function renderHourChart(year) {
         .padding(0.1);
 
       const y = d3.scaleLinear()
-        .domain([0, d3.max(filteredData, d => d.Accidents)])
+        .domain([0, d3.max(filteredData, d => d.Accidents) * 1.1])
         .nice()
         .range([height, 0]);
 
@@ -294,6 +594,10 @@ function renderHourChart(year) {
     })
     .catch(error => {
       console.error('Error fetching data:', error);
+      d3.select('#hour-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     });
 }
 
@@ -408,6 +712,58 @@ function renderVehChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
+        .text(`Tỷ lệ TNGT theo giới${year !== 'all' ? ` - Năm ${year}` : ''}`);
+
+      // Add legend
+      const legend = svg.append('g')
+        .attr('transform', `translate(${radius + 300}, 20)`);
+
+      filteredData.forEach((d, i) => {
+        const legendItem = legend.append('g')
+          .attr('transform', `translate(0, ${i * 25})`);
+
+        legendItem.append('rect')
+          .attr('width', 15)
+          .attr('height', 15)
+          .attr('fill', color(i));
+
+        legendItem.append('text')
+          .attr('x', 20)
+          .attr('y', 12)
+          .text(`${d.Gender_1} (${d.Accidents})`);
+      });
+    })
+    .catch(error => {
+      console.error("Error fetching data:", error);
+      d3.select('#gender-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
+    }); percentage = (d.data.Accidents / total) * 100;
+          
+          // Adjust label position based on percentage
+          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
+        })
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
+        });
+
+      // Add title
+      g.append('text')
+        .attr('y', -radius - 20)
+        .attr('text-anchor', 'middle')
+        .style('font-weight', 'bold')
         .text(`Tỷ lệ TNGT theo loại xe${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Add legend and move outside chart
@@ -431,7 +787,29 @@ function renderVehChart_Pie(year) {
     })
     .catch(error => {
       console.error("Error fetching data:", error);
+      d3.select('#veh-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     });
+}
+
+// Similar changes for other chart functions...
+// Helper functions for data aggregation
+function aggregateVehData(data) {
+  const aggregated = {};
+ 
+  data.forEach(item => {
+    if (!aggregated[item.Veh_1]) {
+      aggregated[item.Veh_1] = 0;
+    }
+    aggregated[item.Veh_1] += item.Accidents;
+  });
+
+  return Object.entries(aggregated).map(([Veh_1, Accidents]) => ({
+    Veh_1,
+    Accidents
+  }));
 }
 
 // Function to render road type pie chart
@@ -551,24 +929,11 @@ function renderRoadChart_Pie(year) {
     })
     .catch(error => {
       console.error("Error fetching data:", error);
+      d3.select('#road-chart')
+        .append('div')
+        .attr('class', 'error-message')
+        .text('Không thể tải dữ liệu. Vui lòng thử lại sau.');
     });
-}
-
-// Function to aggregate vehicle data
-function aggregateVehData(data) {
-  const aggregated = {};
- 
-  data.forEach(item => {
-    if (!aggregated[item.Veh_1]) {
-      aggregated[item.Veh_1] = 0;
-    }
-    aggregated[item.Veh_1] += item.Accidents;
-  });
-
-  return Object.entries(aggregated).map(([Veh_1, Accidents]) => ({
-    Veh_1,
-    Accidents
-  }));
 }
 
 // Function to aggregate road data
@@ -639,418 +1004,6 @@ function renderGenderChart_Pie(year) {
       const color = d3.scaleOrdinal()
         .domain(filteredData.map(d => d.Gender_1))
         .range(["orange", "steelblue"]);
-
-      // Draw sections
-      const arcs = pie(filteredData);
-      g.selectAll('path')
-        .data(arcs)
-        .enter().append('path')
-        .attr('d', arc)
-        .attr('fill', (d, i) => color(i))
-        .attr('stroke', 'white')
-        .attr('stroke-width', 2);
-
-      // Add percentage labels (adjust position based on percentage)
-      g.selectAll('text')
-        .data(arcs)
-        .enter().append('text')
-        .attr('transform', d => {
-          const pos = arc.centroid(d);
-          const percentage = (d.data.Accidents / total) * 100;
-          
-          // Adjust label position based on percentage
-          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
-          pos[0] *= multiplier;
-          pos[1] *= multiplier;
-          
-          return `translate(${pos})`;
-        })
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '12px')
-        .attr('fill', d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
-        })
-        .text(d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-        });
-
-      // Add title
-      g.append('text')
-        .attr('y', -radius - 20)
-        .attr('text-anchor', 'middle')
-        .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo giới${year !== 'all' ? ` - Năm ${year}` : ''}`);
-
-      // Add legend
-      const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
-      filteredData.forEach((d, i) => {
-        const legendItem = legend.append('g')
-          .attr('transform', `translate(0, ${i * 25})`);
-
-        legendItem.append('rect')
-          .attr('width', 15)
-          .attr('height', 15)
-          .attr('fill', color(i));
-
-        legendItem.append('text')
-          .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Gender_1} (${d.Accidents})`);
-      });
-    })
-    .catch(error => {
-      console.error("Error fetching data:", error);
-    });
-}
-
-// Function to aggregate gender data
-function aggregateGenderData(data) {
-  const temp = {};
-  data.forEach(d => {
-    const key = d.Gender_1;
-    if (!temp[key]) temp[key] = 0;
-    temp[key] += d.Accidents;
-  });
-  return Object.entries(temp).map(([Gender_1, Accidents]) => ({
-    Gender_1,
-    Accidents
-  }));
-}
-
-// Function to render age pie chart
-function renderAgeChart_Pie(year) {
-  // Build API URL
-  const apiUrl = getApiUrl('/api/data_age_by_year');
-
-  // Fetch data from API
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
-    .then(data => {
-      // Process data by selected year
-      let filteredData;
-      if (year === 'all') {
-        // Aggregate data for all years
-        filteredData = aggregateAgeData(data);
-      } else {
-        // Filter by specific year
-        filteredData = data.filter(d => d.Year === parseInt(year));
-      }
-
-      if (filteredData.length === 0) {
-        console.error("No data available");
-        return;
-      }
-
-      // Remove old chart
-      d3.select('#age-chart').selectAll('svg').remove();
-
-      // Calculate total
-      const total = d3.sum(filteredData, d => d.Accidents);
-
-      // Set up canvas
-      const svg = d3.select('#age-chart')
-        .append('svg')
-        .attr('width', 700)
-        .attr('height', 300);
-
-      const margin = { top: 20, right: 20, bottom: 10, left: 20 };
-      const radius = Math.min(500, 300) / 2 - 15;
-      const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
-
-      // Create pie chart
-      const pie = d3.pie().value(d => d.Accidents);
-      const arc = d3.arc()
-        .innerRadius(0)
-        .outerRadius(radius);
-
-      // Colors
-      const color = d3.scaleOrdinal()
-        .domain(filteredData.map(d => d.age_name))
-        .range(["lightblue", "orange", "steelblue", "#999999"]);
-
-      // Draw sections
-      const arcs = pie(filteredData);
-      g.selectAll('path')
-        .data(arcs)
-        .enter().append('path')
-        .attr('d', arc)
-        .attr('fill', (d, i) => color(i))
-        .attr('stroke', 'white')
-        .attr('stroke-width', 2);
-
-      // Add percentage labels (adjust position based on percentage)
-      g.selectAll('text')
-        .data(arcs)
-        .enter().append('text')
-        .attr('transform', d => {
-          const pos = arc.centroid(d);
-          const percentage = (d.data.Accidents / total) * 100;
-          
-          // Adjust label position based on percentage
-          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
-          pos[0] *= multiplier;
-          pos[1] *= multiplier;
-          
-          return `translate(${pos})`;
-        })
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '12px')
-        .attr('fill', d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
-        })
-        .text(d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-        });
-
-      // Add title
-      g.append('text')
-        .attr('y', -radius - 20)
-        .attr('text-anchor', 'middle')
-        .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo độ tuổi${year !== 'all' ? ` - Năm ${year}` : ''}`);
-
-      // Add legend
-      const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
-      filteredData.forEach((d, i) => {
-        const legendItem = legend.append('g')
-          .attr('transform', `translate(0, ${i * 25})`);
-
-        legendItem.append('rect')
-          .attr('width', 15)
-          .attr('height', 15)
-          .attr('fill', color(i));
-
-        legendItem.append('text')
-          .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.age_name} (${d.Accidents})`);
-      });
-    })
-    .catch(error => {
-      console.error("Error fetching data:", error);
-    });
-}
-
-// Function to aggregate age data
-function aggregateAgeData(data) {
-  const temp = {};
-  data.forEach(d => {
-    const key = d.age_name;
-    if (!temp[key]) temp[key] = 0;
-    temp[key] += d.Accidents;
-  });
-  return Object.entries(temp).map(([age_name, Accidents]) => ({
-    age_name,
-    Accidents
-  }));
-}
-
-// Function to render severity pie chart
-function renderSeverityChart_Pie(year) {
-  // Build API URL
-  const apiUrl = getApiUrl('/api/data_severity_by_year');
-
-  // Fetch data from API
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
-    .then(data => {
-      // Process data by selected year
-      let filteredData;
-      if (year === 'all') {
-        // Aggregate data for all years
-        filteredData = aggregateSeverityData(data);
-      } else {
-        // Filter by specific year
-        filteredData = data.filter(d => d.Year === parseInt(year));
-      }
-
-      if (filteredData.length === 0) {
-        console.error("No data available");
-        return;
-      }
-
-      // Sort data by severity level
-      const severityOrder = ["Không bị sao", "Thương nhẹ", "Thương nặng", "Tử vong"];
-      filteredData.sort((a, b) => severityOrder.indexOf(a.Severity_1) - severityOrder.indexOf(b.Severity_1));
-
-      // Remove old chart
-      d3.select('#severity-chart').selectAll('svg').remove();
-
-      // Calculate total
-      const total = d3.sum(filteredData, d => d.Accidents);
-
-      // Set up canvas
-      const svg = d3.select('#severity-chart')
-        .append('svg')
-        .attr('width', 700)
-        .attr('height', 300);
-
-      const margin = { top: 20, right: 20, bottom: 10, left: 20 };
-      const radius = Math.min(500, 300) / 2 - 15;
-      const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
-
-      // Create pie chart
-      const pie = d3.pie().value(d => d.Accidents);
-      const arc = d3.arc()
-        .innerRadius(0)
-        .outerRadius(radius);
-
-      // Colors
-      const color = d3.scaleOrdinal()
-        .domain(filteredData.map(d => d.Severity_1))
-        .range(["#4ECDC4", "#FF6B6B", "#FFD166", "#06D6A0"]);
-
-      // Draw sections
-      const arcs = pie(filteredData);
-      g.selectAll('path')
-        .data(arcs)
-        .enter().append('path')
-        .attr('d', arc)
-        .attr('fill', (d, i) => color(i))
-        .attr('stroke', 'white')
-        .attr('stroke-width', 2);
-
-      // Add percentage labels (adjust position based on percentage)
-      g.selectAll('text')
-        .data(arcs)
-        .enter().append('text')
-        .attr('transform', d => {
-          const pos = arc.centroid(d);
-          const percentage = (d.data.Accidents / total) * 100;
-          
-          // Adjust label position based on percentage
-          const multiplier = percentage < 5 ? 2.1 : 1.05; // Labels <5% will be pushed further out
-          pos[0] *= multiplier;
-          pos[1] *= multiplier;
-          
-          return `translate(${pos})`;
-        })
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '12px')
-        .attr('fill', d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? '#333' : '#fff'; // Black text for outside labels, white for inside
-        })
-        .text(d => {
-          const percentage = (d.data.Accidents / total) * 100;
-          return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-        });
-
-      // Add title
-      g.append('text')
-        .attr('y', -radius - 20)
-        .attr('text-anchor', 'middle')
-        .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo mức độ nghiêm trọng${year !== 'all' ? ` - Năm ${year}` : ''}`);
-
-      // Add legend
-      const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
-      filteredData.forEach((d, i) => {
-        const legendItem = legend.append('g')
-          .attr('transform', `translate(0, ${i * 25})`);
-
-        legendItem.append('rect')
-          .attr('width', 15)
-          .attr('height', 15)
-          .attr('fill', color(i));
-
-        legendItem.append('text')
-          .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Severity_1} (${d.Accidents})`);
-      });
-    })
-    .catch(error => {
-      console.error("Error fetching data:", error);
-    });
-}
-
-// Function to aggregate severity data
-function aggregateSeverityData(data) {
-  const temp = {};
-  data.forEach(d => {
-    const key = d.Severity_1;
-    if (!temp[key]) temp[key] = 0;
-    temp[key] += d.Accidents;
-  });
-  return Object.entries(temp).map(([Severity_1, Accidents]) => ({
-    Severity_1,
-    Accidents
-  }));
-}
-
-// Function to render cause pie chart
-function renderCauseChart_Pie(year) {
-  // Build API URL
-  const apiUrl = getApiUrl('/api/data_cause_by_year');
-
-  // Fetch data from API
-  fetch(apiUrl)
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return response.json();
-    })
-    .then(data => {
-      // Process data by selected year
-      let filteredData;
-      if (year === 'all') {
-        // Aggregate data for all years
-        filteredData = aggregateCauseData(data);
-      } else {
-        // Filter by specific year
-        filteredData = data.filter(d => d.Year === parseInt(year));
-      }
-
-      if (filteredData.length === 0) {
-        console.error("No data available");
-        return;
-      }
-
-      // Remove old chart
-      d3.select('#cause-chart').selectAll('svg').remove();
-
-      // Calculate total
-      const total = d3.sum(filteredData, d => d.Accidents);
-
-      // Set up canvas
-      const svg = d3.select('#cause-chart')
-        .append('svg')
-        .attr('width', 700)
-        .attr('height', 300);
-
-      const margin = { top: 20, right: 20, bottom: 10, left: 20 };
-      const radius = Math.min(500, 300) / 2 - 15;
-      const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
-
-      // Create pie chart
-      const pie = d3.pie().value(d => d.Accidents);
-      const arc = d3.arc()
-        .innerRadius(0)
-        .outerRadius(radius);
-
-      // Colors
-      const color = d3.scaleOrdinal()
-        .domain(filteredData.map(d => d.Causes))
-        .range(["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEEAD", "#D4A5A5", "#79BEDB"]);
 
       // Draw sections
       const arcs = pie(filteredData);
