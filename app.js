@@ -773,7 +773,7 @@ io.on('connection', function(socket){
 
 
 //server.listen(8000);
-const port = 8000;
+const port = 3306;
 server.listen(port, () => {
   console.log(`Ứng dụng chạy tại http://localhost:${port}`);
 });
