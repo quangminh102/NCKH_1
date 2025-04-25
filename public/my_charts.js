@@ -26,7 +26,7 @@ function updateCharts(year) {
 // Hàm vẽ biểu đồ tháng
 function renderMonthChart(year) {
   // Xây dựng URL API
-  let apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_month_by_year';
+  let apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_month_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -149,7 +149,7 @@ function renderMonthChart(year) {
 // Hàm vẽ biểu đồ ngày trong tuần
 function renderWeekChart(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_week_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_week_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -262,7 +262,7 @@ function aggregateWeeklyData(data) {
 // Hàm vẽ biểu đồ khung giờ
 function renderHourChart(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_hour_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_hour_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -376,7 +376,7 @@ function aggregateHourlyData(data) {
 
 // Hàm vẽ biểu đồ xe
 function renderVehChart_Pie(year) {
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_veh_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_veh_by_year';
 
 
   fetch(apiUrl)
@@ -511,7 +511,7 @@ g.selectAll('text')
 
 
 function renderRoadChart_Pie(year) {
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_road_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_road_by_year';
 
 
   fetch(apiUrl)
@@ -681,7 +681,7 @@ function aggregateVehData(data) {
 
 function renderGenderChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_gender_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_gender_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -832,7 +832,7 @@ function aggregateGenderData(data) {
 
 function renderAgeChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_age_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_age_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -984,7 +984,7 @@ function aggregateAgeData(data) {
 
 function renderSeverityChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_severity_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_severity_by_year';
 
 
   // Lấy dữ liệu từ API
@@ -1140,7 +1140,7 @@ function aggregateSeverityData(data) {
 
 
 function renderCauseChart_Pie(year) {
-  const apiUrl = 'http://https://nckh-1-c67b.onrender.com/api/data_cause_by_year';
+  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_cause_by_year';
 
   fetch(apiUrl)
     .then(response => {
