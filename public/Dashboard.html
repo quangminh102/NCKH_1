@@ -4,10 +4,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Thông tin tai nạn giao thông đường bộ</title>
-    
-    <!-- Add API base URL data attribute for environment variable support -->
-    <meta id="api-base-url" data-url="<%= process.env.API_BASE_URL || '' %>" />
-    
     <!-- Font Awesome Icon Library -->
     <link
       rel="stylesheet"
@@ -19,6 +15,8 @@
       /* Reset default margins and ensure padding is included in width/height */
       * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
       /* Body layout for full height and flex column */
       body {
@@ -26,16 +24,16 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        margin: 0;
+        background-color: #f9fafb;
       }
-      /* Header styles (unchanged) */
+      /* Header styles with improved contrast */
       header {
-        background: linear-gradient(to right, #0099ff, #00ccff);
-        padding: 10px 0;
+        background: linear-gradient(to right, #0066cc, #0099ff);
+        padding: 12px 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
       }
       .logo-container {
         display: flex;
@@ -45,20 +43,24 @@
       .logo {
         width: 70px;
         height: 70px;
-        margin-right: 10px;
+        margin-right: 15px;
+        border-radius: 5px;
       }
       .school-name {
-        color: #e0f405;
+        color: #ffffff;
         font-weight: bold;
         font-size: 18px;
         text-transform: uppercase;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
       }
       .dashboard-title {
-        color: #e0f405;
-        font-size: 18px;
+        color: #ffeb3b;
+        font-size: 20px;
         font-weight: bold;
+        margin-top: 5px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
       }
-      /* Navigation styles (added flex-wrap for responsiveness) */
+      /* Navigation styles with improved hover effects */
       nav {
         display: flex;
         justify-content: flex-end;
@@ -78,89 +80,185 @@
         font-weight: bold;
         display: flex;
         align-items: center;
+        padding: 8px 12px;
+        border-radius: 4px;
+        transition: background-color 0.3s ease;
+      }
+      nav ul li a:hover {
+        background-color: rgba(255, 255, 255, 0.2);
       }
       nav ul li a i {
-        margin-right: 5px;
+        margin-right: 8px;
         color: white;
       }
 
-      /* Filter controls styles */
+      /* Filter controls styles with improved visual design */
       .filter-controls {
-        background-color: #f5f5f5;
-        padding: 15px 20px;
+        background-color: #ffffff;
+        padding: 18px 20px;
         display: flex;
         justify-content: center;
         align-items: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+        margin-bottom: 10px;
       }
 
       .filter-label {
         font-weight: bold;
-        margin-right: 10px;
+        margin-right: 15px;
+        color: #333;
       }
 
       .year-selector {
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
+        padding: 10px 15px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
         background-color: white;
         font-size: 16px;
-        min-width: 150px;
+        min-width: 180px;
         cursor: pointer;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        outline: none;
+      }
+      
+      .year-selector:hover {
+        border-color: #0099ff;
+      }
+      
+      .year-selector:focus {
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.2);
       }
 
-      /* Dashboard grid styles */
+      /* Dashboard grid styles with improved card design */
       .dashboard-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        padding: 20px;
+        gap: 25px;
+        padding: 25px;
         flex-grow: 1;
       }
+      
       .chart {
-        border: 1px solid #ccc;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e6e6e6;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         background: #ffffff;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        overflow: hidden;
       }
+      
       .chart:hover {
-        transform: scale(1.05);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
       }
+      
       .chart-title {
         font-size: 18px;
         font-weight: bold;
         color: #333;
-        margin-bottom: 15px;
-        padding-bottom: 5px;
-        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+        text-align: center;
       }
-      /* Footer styles (unchanged) */
+      
+      /* Loading state for charts */
+      .chart::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+      }
+      
+      .chart.loading::before {
+        opacity: 1;
+        content: "Đang tải...";
+        font-weight: bold;
+        color: #0066cc;
+      }
+      
+      /* Footer styles with improved visual design */
       footer {
         background-color: #003366;
         color: white;
         text-align: center;
-        padding: 10px 0;
+        padding: 15px 0;
+        font-size: 14px;
+        box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
       }
+      
       /* Responsive adjustments */
-      @media (max-width: 1024px) {
+      @media (max-width: 1200px) {
         .dashboard-grid {
           grid-template-columns: repeat(2, 1fr);
         }
       }
+      
       @media (max-width: 768px) {
         .dashboard-grid {
           grid-template-columns: 1fr;
+          padding: 15px;
         }
+        
+        header {
+          flex-direction: column;
+          padding: 15px 0;
+        }
+        
+        .logo-container {
+          margin-bottom: 15px;
+          margin-left: 0;
+          justify-content: center;
+        }
+        
+        nav {
+          margin-right: 0;
+          width: 100%;
+          justify-content: center;
+        }
+        
+        nav ul {
+          justify-content: center;
+          padding: 10px 0;
+        }
+        
+        nav ul li {
+          margin: 5px 10px;
+        }
+        
+        .filter-controls {
+          flex-wrap: wrap;
+        }
+      }
+      
+      /* Animation for chart content loading */
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      .chart-content {
+        animation: fadeIn 0.5s ease-in-out;
       }
     </style>
   </head>
   <body>
     <header>
       <div class="logo-container">
-        <img src="./picture/LogoUTC.png" class="logo" alt="Logo" />
+        <img src="./picture/LogoUTC.png" class="logo" alt="Logo UTC" />
         <div>
           <div class="school-name">TRƯỜNG ĐẠI HỌC GIAO THÔNG VẬN TẢI</div>
           <div class="dashboard-title">DASHBOARD THÔNG TIN TNGT HÀ NỘI</div>
@@ -169,19 +267,29 @@
       <nav>
         <ul>
           <li>
-            <a href="javascript:void(0)" onclick="window.location.href = window.location.hostname === 'localhost' ? 'http://localhost:8000/' : 'https://nckh-1-c67b.onrender.com';"><i class="fa fa-home"></i> Home</a>
+            <a href="/" title="Trang chủ">
+              <i class="fas fa-home"></i> Home
+            </a>
           </li>
           <li>
-            <a href="Dashboard.html"><i class="fas fa-chart-bar"></i> DB_1D</a>
+            <a href="Dashboard.html" title="Dashboard 1D">
+              <i class="fas fa-chart-bar"></i> DB_1D
+            </a>
           </li>
           <li>
-            <a href="Dashboard_v2x.html"><i class="fas fa-chart-bar"></i> DB_2D</a>
+            <a href="Dashboard_v2x.html" title="Dashboard 2D">
+              <i class="fas fa-chart-bar"></i> DB_2D
+            </a>
           </li>
           <li>
-            <a href="Accident_map.html"><i class="fas fa-map"></i> Map</a>
+            <a href="Accident_map.html" title="Bản đồ tai nạn">
+              <i class="fas fa-map"></i> Map
+            </a>
           </li>
           <li>
-            <a href="info.html"><i class="fas fa-at"></i> Contact us</a>
+            <a href="info.html" title="Liên hệ">
+              <i class="fas fa-at"></i> Contact us
+            </a>
           </li>
         </ul>
       </nav>
@@ -191,63 +299,133 @@
     <div class="filter-controls">
       <span class="filter-label">Chọn năm:</span>
       <select id="yearSelector" class="year-selector">
-        <option value="all">Các năm</option>
-        <option value="2015">2015</option>
-        <option value="2016">2016</option>
-        <option value="2017">2017</option>
+        <option value="all">Tất cả các năm</option>
+        <option value="2015">Năm 2015</option>
+        <option value="2016">Năm 2016</option>
+        <option value="2017">Năm 2017</option>
       </select>
     </div>
 
     <div class="dashboard-grid">
       <div id="hour-chart" class="chart">
-        <div class="chart-title">Phân bố TNGT theo khung giờ</div>
+        <div class="chart-title" id="hour-chart-title">Phân bố TNGT theo khung giờ</div>
+        <div class="chart-content"></div>
       </div>
       <div id="week-chart" class="chart">
-        <div class="chart-title">Phân bố TNGT theo ngày</div>
+        <div class="chart-title" id="week-chart-title">Phân bố TNGT theo ngày trong tuần</div>
+        <div class="chart-content"></div>
       </div>
       <div id="month-chart" class="chart">
-        <div class="chart-title">Phân bố TNGT theo tháng</div>
+        <div class="chart-title" id="month-chart-title">Phân bố TNGT theo tháng</div>
+        <div class="chart-content"></div>
       </div>
       <div id="road-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT theo loại đường</div>
+        <div class="chart-title" id="road-chart-title">Tỷ lệ TNGT theo loại đường</div>
+        <div class="chart-content"></div>
       </div>
       <div id="veh-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT loại xe</div>
+        <div class="chart-title" id="veh-chart-title">Tỷ lệ TNGT theo loại phương tiện</div>
+        <div class="chart-content"></div>
       </div>
       <div id="gender-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT theo giới</div>
+        <div class="chart-title" id="gender-chart-title">Tỷ lệ TNGT theo giới tính</div>
+        <div class="chart-content"></div>
       </div>
       <div id="age-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT theo độ tuổi</div>
+        <div class="chart-title" id="age-chart-title">Tỷ lệ TNGT theo độ tuổi</div>
+        <div class="chart-content"></div>
       </div>
       <div id="severity-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT theo mức độ</div>
+        <div class="chart-title" id="severity-chart-title">Tỷ lệ TNGT theo mức độ nghiêm trọng</div>
+        <div class="chart-content"></div>
       </div>
       <div id="cause-chart" class="chart">
-        <div class="chart-title">Tỷ lệ TNGT theo nguyên nhân</div>
+        <div class="chart-title" id="cause-chart-title">Tỷ lệ TNGT theo nguyên nhân</div>
+        <div class="chart-content"></div>
       </div>
     </div>
-
     <footer>
-      <p>© 2025 Vương Xuân Cần và cộng sự - UTC. All rights reserved.</p>
+      <p>&copy; 2025 Vương Xuân Cần và cộng sự - Trường Đại học Giao thông Vận tải. All rights reserved.</p>
     </footer>
-
-    <!-- Initialize API base URL from environment variables -->
+    
     <script>
-      // Initialize API base URL from environment variable or meta tag
-      (function() {
-        const apiBaseElement = document.getElementById('api-base-url');
-        if (apiBaseElement) {
-          window.API_BASE_URL = apiBaseElement.getAttribute('data-url');
-        }
+    // Store original chart titles
+    const originalTitles = {};
+    
+    // Function to initialize chart titles
+    function initializeChartTitles() {
+      const chartTitles = document.querySelectorAll('.chart-title');
+      chartTitles.forEach(title => {
+        originalTitles[title.id] = title.textContent;
+      });
+    }
+    
+    // Function to update chart titles based on selected year
+    function updateChartTitles(selectedYear) {
+      const chartTitles = document.querySelectorAll('.chart-title');
+      
+      chartTitles.forEach(title => {
+        // Get original title from our stored object
+        const baseTitle = originalTitles[title.id];
         
-        // Update navigation links to use dynamic base URL if needed
-        if (window.API_BASE_URL) {
-          document.getElementById('home-link').href = window.API_BASE_URL || '/';
+        // Only add year suffix if a specific year is selected
+        if (selectedYear !== 'all') {
+          title.textContent = `${baseTitle} - Năm ${selectedYear}`;
+        } else {
+          // Restore original title when "Tất cả các năm" is selected
+          title.textContent = baseTitle;
         }
-      })();
+      });
+    }
+    
+    // Function to simulate chart loading
+    function simulateChartLoading() {
+      const charts = document.querySelectorAll('.chart');
+      
+      // Add loading state to all charts
+      charts.forEach(chart => {
+        chart.classList.add('loading');
+      });
+      
+      // Remove loading state after a short delay
+      setTimeout(() => {
+        charts.forEach(chart => {
+          chart.classList.remove('loading');
+        });
+      }, 800);
+    }
+    
+    // Add event listener to year selector
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeChartTitles();
+      
+      const yearSelector = document.getElementById('yearSelector');
+      if (yearSelector) {
+        yearSelector.addEventListener('change', function() {
+          const selectedYear = this.value;
+          updateChartTitles(selectedYear);
+          simulateChartLoading();
+          
+          // Here you would typically call your chart rendering functions
+          // loadChartData(selectedYear);
+        });
+      }
+    });
+    
+    // External script references
+    // Note: These should be external files, but we reference them here for completeness
+    // document.addEventListener('DOMContentLoaded', function() {
+    //   const script1 = document.createElement('script');
+    //   script1.src = 'Xuly.js';
+    //   document.body.appendChild(script1);
+    //
+    //   const script2 = document.createElement('script');
+    //   script2.src = 'my_charts.js';
+    //   document.body.appendChild(script2);
+    // });
     </script>
     
+    <!-- External scripts - uncomment these and comment out the inline script above in production -->
     <script src="Xuly.js"></script>
     <script src="my_charts.js"></script>
   </body>
