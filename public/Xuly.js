@@ -1,4 +1,28 @@
-var socket = io("https://localhost:8000");
+// Dynamically determine the socket.io server URL based on hostname
+const getServerUrl = () => {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://localhost:8000';  // Use HTTP for localhost
+  } else {
+    return 'https://nckh-1-c67b.onrender.com';  // Use production server otherwise
+  }
+};
+
+// Initialize socket connection with the appropriate URL
+const socket = io(getServerUrl());
+
+// Optional: Log connection information
+console.log(`Socket.IO connecting to: ${getServerUrl()}`);
+
+// Optional: Add event listeners for connection status
+socket.on('connect', () => {
+  console.log('Connected to server successfully');
+});
+
+socket.on('connect_error', (error) => {
+  console.error('Connection error:', error);
+});
+
 function initAutocomplete() {
   const map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 21.027763, lng: 105.834160 },
