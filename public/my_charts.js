@@ -23,10 +23,31 @@ function updateCharts(year) {
 }
 
 
+// Function to determine the base API URL
+function getBaseApiUrl() {
+  // Check if running locally or on a web server
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' ) {
+    // Running locally
+    return 'http://localhost:8000/api';  // Adjust port if your local server uses a different one
+  } else {
+    // Running on web server
+    return 'https://nckhsv-2025.onrender.com/api';
+  }
+}
+
+// Update all API URLs with the correct base URL
+function updateApiUrl(endpoint) {
+  const baseUrl = getBaseApiUrl();
+  return `${baseUrl}/${endpoint}`;
+}
+
+
 // Hàm vẽ biểu đồ tháng
 function renderMonthChart(year) {
   // Xây dựng URL API
-  let apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_month_by_year';
+ let apiUrl = updateApiUrl('data_month_by_year');
 
 
   // Lấy dữ liệu từ API
@@ -149,7 +170,7 @@ function renderMonthChart(year) {
 // Hàm vẽ biểu đồ ngày trong tuần
 function renderWeekChart(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_week_by_year';
+  let apiUrl = updateApiUrl('data_week_by_year');
 
 
   // Lấy dữ liệu từ API
@@ -262,8 +283,7 @@ function aggregateWeeklyData(data) {
 // Hàm vẽ biểu đồ khung giờ
 function renderHourChart(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_hour_by_year';
-
+  let apiUrl = updateApiUrl('data_hour_by_year');
 
   // Lấy dữ liệu từ API
   fetch(apiUrl)
@@ -376,8 +396,7 @@ function aggregateHourlyData(data) {
 
 // Hàm vẽ biểu đồ xe
 function renderVehChart_Pie(year) {
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_veh_by_year';
-
+  let apiUrl = updateApiUrl('data_veh_by_year');
 
   fetch(apiUrl)
     .then(response => {
@@ -511,8 +530,7 @@ g.selectAll('text')
 
 
 function renderRoadChart_Pie(year) {
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_road_by_year';
-
+  let apiUrl = updateApiUrl('data_road_by_year');
 
   fetch(apiUrl)
     .then(response => {
@@ -681,8 +699,7 @@ function aggregateVehData(data) {
 
 function renderGenderChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_gender_by_year';
-
+  let apiUrl = updateApiUrl('data_gender_by_year');
 
   // Lấy dữ liệu từ API
   fetch(apiUrl)
@@ -832,8 +849,7 @@ function aggregateGenderData(data) {
 
 function renderAgeChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_age_by_year';
-
+  let apiUrl = updateApiUrl('data_age_by_year');
 
   // Lấy dữ liệu từ API
   fetch(apiUrl)
@@ -984,8 +1000,7 @@ function aggregateAgeData(data) {
 
 function renderSeverityChart_Pie(year) {
   // Xây dựng URL API
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_severity_by_year';
-
+  let apiUrl = updateApiUrl('data_severity_by_year');
 
   // Lấy dữ liệu từ API
   fetch(apiUrl)
@@ -1140,8 +1155,8 @@ function aggregateSeverityData(data) {
 
 
 function renderCauseChart_Pie(year) {
-  const apiUrl = 'http://https://nckhsv-2025.onrender.com/api/data_cause_by_year';
-
+  let apiUrl = updateApiUrl('data_cause_by_year');
+  
   fetch(apiUrl)
     .then(response => {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
