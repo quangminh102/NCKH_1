@@ -45,7 +45,7 @@ function updateApiUrl(endpoint) {
 // Gender-Age correlation chart (100% stacked)
 function renderGenderAgeChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_gender_age_by_year';
+  let apiUrl = updateApiUrl('data_gender_age_by_year');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
@@ -320,7 +320,7 @@ function getAgeLabel(key) {
 // Gender-Severity correlation chart (100% stacked)
 function renderGenderSeverityChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_gender_severity';
+  let apiUrl = updateApiUrl('data_gender_severity');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
@@ -551,7 +551,7 @@ function getSeverityLabel(key) {
 // Gender-Vehicle correlation chart (100% stacked)
 function renderGenderVehChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_gender_veh';
+  let apiUrl = updateApiUrl('data_gender_veh');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
@@ -787,7 +787,7 @@ function getVehicleLabel(key) {
 // Vehicle-Severity correlation chart (horizontal 100% stacked)
 function renderVehSeverityChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_veh_severity';
+   let apiUrl = updateApiUrl('data_veh_severity');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
@@ -999,7 +999,7 @@ function getSeverityLabel(key) {
 // Age-Severity correlation chart (horizontal 100% stacked)
 function renderAgeSeverityChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_age_severity';
+   let apiUrl = updateApiUrl('data_age_severity');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
@@ -1236,7 +1236,7 @@ function getSeverityLabel(key) {
 // Road-Severity correlation chart (horizontal 100% stacked)
 function renderRoadSeverityChart(year) {
   // Xây dựng URL API với tham số năm
-  let apiUrl = 'http://localhost:8000/api/data_road_severity';
+   let apiUrl = updateApiUrl('data_road_severity');
   if (year && year !== 'all') {
     apiUrl += `?year=${year}`;
   }
