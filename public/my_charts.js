@@ -466,61 +466,60 @@ function renderVehChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
+  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          const multiplier = percentage < 5 ? 2.1 : 1.05;
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#333')
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
+        });
 
-
-      // Thêm tiêu đề
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo loại xe${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích và di chuyển ra ngoài biểu đồ
+      // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`); // Di chuyển chú thích xa hơn về bên phải (300px từ tâm)
-
+        .attr('transform', `translate(${radius + 190}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
-
+        
+        const percentage = (d.Accidents / total) * 100;
 
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
 
-
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Veh_1}  `);
+          .text(`${d.Causes}  `);
+
+        // Hiển thị phần trăm <2% bên cạnh legend
+        if (percentage < 2) {
+          legendItem.append('text')
+            .attr('x', 210)  // Vị trí hiển thị phần trăm
+            .attr('y', 12)
+            .attr('fill', '#333')
+            .text(`(${percentage.toFixed(1)}%)`);
+        }
       });
     })
     .catch(error => {
@@ -600,61 +599,60 @@ function renderRoadChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
+  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          const multiplier = percentage < 5 ? 2.1 : 1.05;
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#333')
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
+        });
 
-
-      // Thêm tiêu đề
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo loại đường${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích và di chuyển ra ngoài biểu đồ
+      // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
+        .attr('transform', `translate(${radius + 190}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
-
+        
+        const percentage = (d.Accidents / total) * 100;
 
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
 
-
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Rdtype}  `);
+          .text(`${d.Causes}  `);
+
+        // Hiển thị phần trăm <2% bên cạnh legend
+        if (percentage < 2) {
+          legendItem.append('text')
+            .attr('x', 210)  // Vị trí hiển thị phần trăm
+            .attr('y', 12)
+            .attr('fill', '#333')
+            .text(`(${percentage.toFixed(1)}%)`);
+        }
       });
     })
     .catch(error => {
@@ -778,52 +776,60 @@ g.selectAll('text')
     const pos = arc.centroid(d);
     const percentage = (d.data.Accidents / total) * 100;
     
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
+  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          const multiplier = percentage < 5 ? 2.1 : 1.05;
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#333')
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
+        });
 
-      // Thêm tiêu đề
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo giới${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
+        .attr('transform', `translate(${radius + 190}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
-
+        
+        const percentage = (d.Accidents / total) * 100;
 
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
 
-
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Gender_1}  `);
+          .text(`${d.Causes}  `);
+
+        // Hiển thị phần trăm <2% bên cạnh legend
+        if (percentage < 2) {
+          legendItem.append('text')
+            .attr('x', 210)  // Vị trí hiển thị phần trăm
+            .attr('y', 12)
+            .attr('fill', '#333')
+            .text(`(${percentage.toFixed(1)}%)`);
+        }
       });
     })
     .catch(error => {
@@ -920,61 +926,60 @@ function renderAgeChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
+  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          const multiplier = percentage < 5 ? 2.1 : 1.05;
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#333')
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
+        });
 
-
-      // Thêm tiêu đề
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo độ tuổi${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
-        .attr('transform', `translate(${radius + 300}, 20)`);
-
+        .attr('transform', `translate(${radius + 190}, 20)`);
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
-
+        
+        const percentage = (d.Accidents / total) * 100;
 
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
 
-
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.age_name}  `);
+          .text(`${d.Causes}  `);
+
+        // Hiển thị phần trăm <2% bên cạnh legend
+        if (percentage < 2) {
+          legendItem.append('text')
+            .attr('x', 210)  // Vị trí hiển thị phần trăm
+            .attr('y', 12)
+            .attr('fill', '#333')
+            .text(`(${percentage.toFixed(1)}%)`);
+        }
       });
     })
     .catch(error => {
@@ -1076,61 +1081,60 @@ function renderSeverityChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-    // Điều chỉnh vị trí nhãn dựa trên phần trăm
-    const multiplier = percentage < 5 ? 2.1 : 1.05; // Nhãn <5% sẽ được đẩy ra ngoài xa hơn
-    pos[0] *= multiplier;
-    pos[1] *= multiplier;
-    
-    return `translate(${pos})`;
-  })
-  .attr('text-anchor', 'middle')
-  .attr('font-size', '12px') // Kích thước chữ
-  .attr('fill', d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? '#333' : '#fff'; // Màu chữ đen cho nhãn ngoài, trắng cho nhãn trong
-  })
-  .text(d => {
-    const percentage = (d.data.Accidents / total) * 100;
-    return percentage < 5 ? `${percentage.toFixed(1)}%` : `${percentage.toFixed(1)}%`;
-  });
+  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      g.selectAll('text')
+        .data(arcs)
+        .enter().append('text')
+        .attr('transform', d => {
+          const pos = arc.centroid(d);
+          const percentage = (d.data.Accidents / total) * 100;
+          const multiplier = percentage < 5 ? 2.1 : 1.05;
+          pos[0] *= multiplier;
+          pos[1] *= multiplier;
+          return `translate(${pos})`;
+        })
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#333')
+        .text(d => {
+          const percentage = (d.data.Accidents / total) * 100;
+          return percentage >= 2 ? `${percentage.toFixed(1)}%` : '';
+        });
 
-
-      // Thêm tiêu đề
       g.append('text')
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo mức độ nghiêm trọng${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
-
-      // Thêm chú thích
+      // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
         .attr('transform', `translate(${radius + 190}, 20)`);
-
 
       filteredData.forEach((d, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
-
+        
+        const percentage = (d.Accidents / total) * 100;
 
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
           .attr('fill', color(i));
 
-
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Severity_1}  `);
+          .text(`${d.Causes}  `);
+
+        // Hiển thị phần trăm <2% bên cạnh legend
+        if (percentage < 2) {
+          legendItem.append('text')
+            .attr('x', 210)  // Vị trí hiển thị phần trăm
+            .attr('y', 12)
+            .attr('fill', '#333')
+            .text(`(${percentage.toFixed(1)}%)`);
+        }
       });
     })
     .catch(error => {
