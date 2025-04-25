@@ -490,7 +490,7 @@ function renderVehChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT loại xe${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
@@ -623,7 +623,7 @@ function renderRoadChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo loại đường${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
@@ -792,7 +792,7 @@ function renderGenderChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo giới${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
@@ -942,7 +942,7 @@ function renderAgeChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo độ tuổi${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
@@ -1097,7 +1097,7 @@ function renderSeverityChart_Pie(year) {
         .attr('y', -radius - 20)
         .attr('text-anchor', 'middle')
         .style('font-weight', 'bold')
-        .text(`Tỷ lệ TNGT theo nguyên nhân chính${year !== 'all' ? ` - Năm ${year}` : ''}`);
+        .text(`Tỷ lệ TNGT theo mức độ nghiêm trọng${year !== 'all' ? ` - Năm ${year}` : ''}`);
 
       // Thêm chú thích với phần trăm <2%
       const legend = svg.append('g')
