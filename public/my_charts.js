@@ -520,7 +520,7 @@ g.selectAll('text')
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Veh_1} (${d.Accidents})`);
+          .text(`${d.Veh_1}  `);
       });
     })
     .catch(error => {
@@ -654,7 +654,7 @@ g.selectAll('text')
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Rdtype} (${d.Accidents})`);
+          .text(`${d.Rdtype}  `);
       });
     })
     .catch(error => {
@@ -823,7 +823,7 @@ g.selectAll('text')
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Gender_1} (${d.Accidents})`);
+          .text(`${d.Gender_1}  `);
       });
     })
     .catch(error => {
@@ -974,7 +974,7 @@ g.selectAll('text')
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.age_name} (${d.Accidents})`);
+          .text(`${d.age_name}  `);
       });
     })
     .catch(error => {
@@ -1130,7 +1130,7 @@ g.selectAll('text')
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Severity_1} (${d.Accidents})`);
+          .text(`${d.Severity_1}  `);
       });
     })
     .catch(error => {
@@ -1251,7 +1251,7 @@ function renderCauseChart_Pie(year) {
         legendItem.append('text')
           .attr('x', 20)
           .attr('y', 12)
-          .text(`${d.Causes} (${d.Accidents})`);
+          .text(`${d.Causes}  `);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
