@@ -439,7 +439,7 @@ function renderVehChart_Pie(year) {
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15; // Bán kính vẫn giữ nguyên
       const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`); // Tâm biểu đồ giữ nguyên
+        .attr('transform', `translate(${150},${150})`); // Tâm biểu đồ giữ nguyên
 
 
       // Tạo pie chart
@@ -466,7 +466,7 @@ function renderVehChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
       g.selectAll('text')
         .data(arcs)
         .enter().append('text')
@@ -505,18 +505,18 @@ function renderVehChart_Pie(year) {
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.Veh_1}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
@@ -572,7 +572,7 @@ function renderRoadChart_Pie(year) {
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
+        .attr('transform', `translate(${150},${150})`);
 
 
       // Tạo pie chart
@@ -599,7 +599,7 @@ function renderRoadChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
       g.selectAll('text')
         .data(arcs)
         .enter().append('text')
@@ -638,18 +638,18 @@ function renderRoadChart_Pie(year) {
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.Rdtype}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
@@ -741,7 +741,7 @@ function renderGenderChart_Pie(year) {
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
+        .attr('transform', `translate(${150},${150})`);
 
 
       // Tạo pie chart
@@ -768,15 +768,7 @@ function renderGenderChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-// Thêm nhãn phần trăm (điều chỉnh vị trí dựa trên phần trăm)
-g.selectAll('text')
-  .data(arcs)
-  .enter().append('text')
-  .attr('transform', d => {
-    const pos = arc.centroid(d);
-    const percentage = (d.data.Accidents / total) * 100;
-    
-  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
       g.selectAll('text')
         .data(arcs)
         .enter().append('text')
@@ -815,18 +807,18 @@ g.selectAll('text')
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.Gender_1}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
@@ -899,7 +891,7 @@ function renderAgeChart_Pie(year) {
       const margin = { top: 20, right: 20, bottom: 10, left: 20 };
       const radius = Math.min(500, 300) / 2 - 15;
       const g = svg.append('g')
-        .attr('transform', `translate(${250},${150})`);
+        .attr('transform', `translate(${150},${150})`);
 
 
       // Tạo pie chart
@@ -926,7 +918,7 @@ function renderAgeChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
       g.selectAll('text')
         .data(arcs)
         .enter().append('text')
@@ -965,18 +957,18 @@ function renderAgeChart_Pie(year) {
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.age_name}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
@@ -1081,7 +1073,7 @@ function renderSeverityChart_Pie(year) {
         .attr('stroke-width', 2);
 
 
-  // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
+      // Thêm nhãn phần trăm (chỈ hiển thị >=2%)
       g.selectAll('text')
         .data(arcs)
         .enter().append('text')
@@ -1120,18 +1112,18 @@ function renderSeverityChart_Pie(year) {
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.Severity_1}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
@@ -1250,18 +1242,18 @@ function renderCauseChart_Pie(year) {
         legendItem.append('rect')
           .attr('width', 15)
           .attr('height', 15)
-          .attr('fill', color(i));
-
+          .attr('fill', color(i))
+          .attr('y',27);
         legendItem.append('text')
           .attr('x', 20)
-          .attr('y', 12)
-          .text(`${d.Causes}  `);
+          .attr('y', 40)
+          .text(`${d.Causes}`);
 
         // Hiển thị phần trăm <2% bên cạnh legend
         if (percentage < 2) {
           legendItem.append('text')
             .attr('x', 210)  // Vị trí hiển thị phần trăm
-            .attr('y', 12)
+            .attr('y', 40)
             .attr('fill', '#333')
             .text(`(${percentage.toFixed(1)}%)`);
         }
