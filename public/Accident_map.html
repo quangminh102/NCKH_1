@@ -294,7 +294,7 @@
             <a href="Accident_map.html"><i class="fas fa-map"></i> Map</a>
           </li>
           <li>
-            <a href="info.html"><i class="fas fa-at"></i> Contact us</a>
+            <a href="Info.html"><i class="fas fa-at"></i> Contact us</a>
           </li>
         </ul>
       </nav>
@@ -498,7 +498,34 @@
         document.getElementById("search-loader").style.display = "inline-block";
 
         // Fetch dữ liệu từ API
-        fetch("http://localhost:8000/api/data_point")
+        // Dynamically determine the API base URL based on hostname
+const getApiBaseUrl = () => {
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost') {
+    return 'http://localhost:8000';  // Use local server for localhost
+  } else {
+    return 'https://nckh-1-c67b.onrender.com';  // Use production server otherwise
+  }
+};
+
+// Use the function to create the full API endpoint URL
+const apiUrl = `${getApiBaseUrl()}/api/data_point`;
+
+// Perform the fetch operation with the dynamic URL
+fetch(apiUrl)
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Data received:', data);
+    // Process your data here
+  })
+  .catch(error => {
+    console.error('Fetch error:', error);
+  });
           .then((response) => {
             if (!response.ok) {
               throw new Error(`Lỗi HTTP: ${response.status}`);
