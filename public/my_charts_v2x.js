@@ -20,6 +20,27 @@ function updateCharts(year) {
   renderRoadSeverityChart(year);
 }
 
+// Function to determine the base API URL
+function getBaseApiUrl() {
+  // Check if running locally or on a web server
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'localhost' ) {
+    // Running locally
+    return 'http://localhost:8000/api';  // Adjust port if your local server uses a different one
+  } else {
+    // Running on web server
+    return 'https://nckh-1-c67b.onrender.com/api';
+  }
+}
+
+// Update all API URLs with the correct base URL
+function updateApiUrl(endpoint) {
+  const baseUrl = getBaseApiUrl();
+  return `${baseUrl}/${endpoint}`;
+}
+
+
 
 // Gender-Age correlation chart (100% stacked)
 function renderGenderAgeChart(year) {
