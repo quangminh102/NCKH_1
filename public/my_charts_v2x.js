@@ -30,7 +30,7 @@ function getBaseApiUrl() {
     return 'http://localhost:8000/api';  // Adjust port if your local server uses a different one
   } else {
     // Running on web server
-    return 'https://nckh-1-c67b.onrender.com/api';
+    return 'https://nckh-1-wgpm.onrender.com/api';
   }
 }
 
